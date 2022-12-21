@@ -1,0 +1,30 @@
+{
+  "name": "Teams chat export",
+  "description": "Exports Microsoft Teams chats",
+  "version": "1.0",
+  "manifest_version": 3,
+  "icons": {
+    "48": "/assets/icons/48.png",
+    "128": "/assets/icons/128.png"
+  },
+  "action": {
+    "default_popup": "/src/popup/popup.html",
+    "default_icon": {
+      "48": "/assets/icons/48.png",
+      "128": "/assets/icons/128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://teams.microsoft.com/*"],
+      "js": ["/src/embedded/embedded.ts"],
+      "css": ["/src/embedded/embedded.css"]
+    }
+  ],
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://teams.microsoft.com/"
+  ]
+}
