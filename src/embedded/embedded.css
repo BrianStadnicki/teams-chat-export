@@ -1,60 +1,9 @@
-/* The Modal (background) */
-#--embedded-chat-export-modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+.--embedded-chat-export-selector-channel {
+    width: 25px!important;
+    height: 25px!important;
 }
 
-/* Modal Content/Box */
-#--embedded-chat-export-modal-content {
-    background-color: #fefefe;
-    margin: 10px auto; /* 15% from the top and centered */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Could be more or less, depending on screen size */
-    height: 80%;
-}
-
-/* The Close Button */
-#--embedded-chat-export-modal-close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-#--embedded-chat-export-modal-close:hover,
-#--embedded-chat-export-modal-close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-#--embedded-chat-export-layout {
-    display: grid;
-    height: 100%;
-    grid-template-columns: [white-space\:-nowrap\;] 300px 0.8fr;
-    grid-template-rows: 1fr;
-    gap: 0px 0px;
-    grid-auto-flow: row;
-    grid-template-areas:
-    "options preview";
-}
-
-#--embedded-chat-export-options {
-    grid-area: options;
-    border-right: solid black 2px;
-    font-size: medium;
-}
-
-#--embedded-chat-export-preview {
-    grid-area: preview;
-    margin-left: 5px;
+.animate-channel-item:has(.--embedded-chat-export-selector-channel) {
+    display: grid!important;
+    grid-template-columns: 25px 1fr;
 }
