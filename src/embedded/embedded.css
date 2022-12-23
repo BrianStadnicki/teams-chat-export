@@ -7,3 +7,16 @@
     display: grid!important;
     grid-template-columns: 25px 1fr;
 }
+
+.--embedded-chat-export-selector-post {
+    display: block!important;
+    width: 30px!important;
+    height: 30px!important;
+    margin-top: 20px!important;
+    margin-left: auto!important;
+    margin-right: auto!important;
+}
+
+.media-left:has(.--embedded-chat-export-selector-post) {
+    display: block!important;
+}
