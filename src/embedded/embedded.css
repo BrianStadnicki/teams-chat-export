@@ -20,3 +20,16 @@
 .media-left:has(.--embedded-chat-export-selector-post) {
     display: block!important;
 }
+
+.--embedded-chat-export-selector-comment {
+    display: block!important;
+    width: 20px!important;
+    height: 20px!important;
+    margin-top: 10px!important;
+    margin-left: auto!important;
+    margin-right: auto!important;
+}
+
+.media-left:has(.--embedded-chat-export-selector-comment) {
+    display: block!important;
+}

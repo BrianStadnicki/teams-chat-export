@@ -69,6 +69,43 @@ function createPostsListCheckboxes() {
     }).observe(document.getElementsByClassName("ts-message-list-container").item(0), {childList: true});
 }
 
+function createCommentsCheckboxes() {
+    let insertCheckbox = (commentDiv: HTMLDivElement) => {
+        if (commentDiv.querySelector(".--embedded-chat-export-selector-comment") !== null) {
+            return;
+        }
+
+        let insertPosition = commentDiv.querySelector("thread-body > .thread-body > .media-left");
+        if (insertPosition === null) {
+            return;
+        }
+
+        let input = document.createElement("input");
+        input.type = "checkbox";
+        input.classList.add("--embedded-chat-export-selector-comment");
+        insertPosition.insertAdjacentElement("beforeend", input);
+    }
+
+    document.querySelectorAll(".conversation-reply").forEach(node => {
+        insertCheckbox(<HTMLDivElement>node);
+    });
+
+    new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === "childList") {
+                mutation.addedNodes.forEach(node => {
+                    if ((<HTMLElement>node).tagName === "DIV" &&
+                        (<HTMLElement>node).classList.contains("conversation-reply")) {
+
+                        insertCheckbox(<HTMLDivElement>node);
+                    }
+                })
+            }
+        })
+    }).observe(document.getElementsByClassName("ts-message-list-container").item(0), {childList: true, subtree: true});
+
+}
+
 setInterval(() => {
     if (document.getElementById("--embedded-chat-export-headbar-export-btn")) return;
 
@@ -85,5 +122,6 @@ setInterval(() => {
     document.getElementById("--embedded-chat-export-headbar-export-btn").onclick = () => {
         createTeamsListCheckboxes();
         createPostsListCheckboxes();
+        createCommentsCheckboxes();
     };
 }, 50);
