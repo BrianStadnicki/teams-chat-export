@@ -33,14 +33,16 @@ export class Renderer {
         if (channel.children.length !== 1 || channel.id === "") {
             return;
         }
+        let id = channel.id.replace("channel-", "");
+
         let input = document.createElement("input");
+        input.id = `--embedded-chat-export-selector-channel-${id}`;
         input.type = "checkbox";
         input.classList.add("--embedded-chat-export-selector-channel");
         channel.insertAdjacentElement("afterbegin", input);
 
-        if (!this.selection.channels.has(channel.id.replace("channel-", ""))) {
-            this.selection.channels.set(channel.id.replace("channel-", ""),
-                {posts: new Map()});
+        if (!this.selection.channels.has(id)) {
+            this.selection.channels.set(id, {posts: new Map()});
         }
     }
 
@@ -78,17 +80,37 @@ export class Renderer {
             return;
         }
 
-        let input = document.createElement("input");
+        let id = postDiv.attributes.getNamedItem("data-scroll-id").value;
+
+        let input = <HTMLInputElement>document.createElement("input");
+        input.id = `--embedded-chat-export-selector-post-${id}`;
         input.type = "checkbox";
         input.classList.add("--embedded-chat-export-selector-post");
+        input.onclick = () => {
+            let post = this.selection.channels.get(this.getActiveChannel()).posts.get(id);
+            post.selected = input.checked;
+            for (let key of post.comments.keys()) {
+                let comment = <HTMLInputElement>document.getElementById(`--embedded-chat-export-selector-comment-${key}`);
+                if (comment.checked !== input.checked) {
+                    comment.click();
+                }
+            }
+        };
         insertPosition.insertAdjacentElement("beforeend", input);
 
-        if (!this.selection.channels.get(this.getActiveChannel()).posts.has(postDiv.attributes.getNamedItem("data-scroll-id").value)) {
+        if (!this.selection.channels.get(this.getActiveChannel()).posts.has(id)) {
             this.selection.channels.get(this.getActiveChannel())
-                .posts.set(postDiv.attributes.getNamedItem("data-scroll-id").value, {
+                .posts.set(id, {
                     selected: false,
                     comments: new Map()
             });
+        } else {
+            if (this.selection.channels.get(this.getActiveChannel()).posts.get(id).selected) {
+                input.checked = true;
+                if (![...this.selection.channels.get(this.getActiveChannel()).posts.get(id).comments.values()].every(comment => comment.selected)) {
+                    input.indeterminate = true;
+                }
+            }
         }
     }
 
@@ -98,7 +120,8 @@ export class Renderer {
             this.insertPostCheckbox(<HTMLDivElement>posts.item(i));
         }
 
-        document.querySelectorAll(".conversation-common.conversation-collapsed > thread-collapsed > div > .expand-collapse").forEach(expandComments => {
+        document.querySelectorAll(".conversation-common.conversation-collapsed > thread-collapsed > div > .expand-collapse:not(.chevron-expanded)").forEach(expandComments => {
+
             (<HTMLDivElement>expandComments).click();
         })
 
@@ -112,7 +135,7 @@ export class Renderer {
                             this.insertPostCheckbox(<HTMLDivElement>node);
 
                             setTimeout(() => {
-                                let collapse = (<HTMLDivElement>(<HTMLElement>node).querySelector(".conversation-common.conversation-collapsed > thread-collapsed > div > .expand-collapse"));
+                                let collapse = (<HTMLDivElement>(<HTMLElement>node).querySelector(".conversation-common.conversation-collapsed > thread-collapsed > div > .expand-collapse:not(.chevron-expanded)"));
                                 if (collapse !== null) {
                                     collapse.click();
                                 }
@@ -134,16 +157,42 @@ export class Renderer {
             return;
         }
 
-        let input = document.createElement("input");
+        let id = commentDiv.querySelector("thread-body > .thread-body").id;
+
+        let input = <HTMLInputElement>document.createElement("input");
+        input.id = `--embedded-chat-export-selector-comment-${id}`;
         input.type = "checkbox";
         input.classList.add("--embedded-chat-export-selector-comment");
+        input.onclick = () => {
+            let postId = commentDiv.parentElement.parentElement.parentElement.parentElement.attributes.getNamedItem("data-scroll-id").value;
+            let post = this.selection.channels.get(this.getActiveChannel()).posts.get(postId);
+            let postCheckbox = (<HTMLInputElement>document.getElementById(`--embedded-chat-export-selector-post-${postId}`));
+            let comment = post.comments.get(id);
+            comment.selected = input.checked;
+
+            if (!input.checked && post.selected) {
+                postCheckbox.indeterminate = true;
+            } else if (input.checked && !post.selected) {
+                postCheckbox.indeterminate = true;
+                post.selected = true;
+            }
+
+            if (input.checked && [...post.comments.values()].every(comment => comment.selected)) {
+                postCheckbox.indeterminate = false;
+                postCheckbox.checked = true;
+            }
+        };
         insertPosition.insertAdjacentElement("beforeend", input);
 
-        if (!this.selection.channels.get(this.getActiveChannel()).posts.get(commentDiv.parentElement.parentElement.parentElement.parentElement
-            .attributes.getNamedItem("data-scroll-id").value).comments.has(commentDiv.querySelector("thread-body > .thread-body").id)) {
-            this.selection.channels.get(this.getActiveChannel()).posts.get(commentDiv.parentElement.parentElement.parentElement.parentElement.attributes.getNamedItem("data-scroll-id").value).comments.set(commentDiv.querySelector("thread-body > .thread-body").id, {
+        let post = this.selection.channels.get(this.getActiveChannel()).posts.get(commentDiv.parentElement.parentElement.parentElement.parentElement
+            .attributes.getNamedItem("data-scroll-id").value);
+
+        if (!post.comments.has(id)) {
+            post.comments.set(id, {
                 selected: false
             })
+        } else {
+            input.checked = post.comments.get(id).selected;
         }
     }
 

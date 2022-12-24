@@ -5,6 +5,6 @@ export interface Selection {
                         comments: Map<string, {
                                 selected: boolean
                         }>
+                }>
         }>
-}>
 }
