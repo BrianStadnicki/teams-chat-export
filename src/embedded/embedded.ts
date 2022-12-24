@@ -1,16 +1,16 @@
-function createTeamsListCheckboxes() {
+function insertChannelCheckbox(channel: HTMLDivElement) {
+    let input = document.createElement("input");
+    input.type = "checkbox";
+    input.classList.add("--embedded-chat-export-selector-channel");
+    channel.insertAdjacentElement("afterbegin", input);
+}
 
-    let createTeamsListCheckbox = () => {
-        let input = document.createElement("input");
-        input.type = "checkbox";
-        input.classList.add("--embedded-chat-export-selector-channel");
-        return input;
-    }
+function createTeamsListCheckboxes() {
 
     let channels = document.getElementsByClassName("animate-channel-item");
     for (let i = 0; i < channels.length; i++) {
         if(channels.item(i).children.length === 1) {
-            channels.item(i).insertAdjacentElement("afterbegin", createTeamsListCheckbox());
+            insertChannelCheckbox(<HTMLDivElement>channels.item(i));
         }
     }
 
@@ -22,7 +22,7 @@ function createTeamsListCheckboxes() {
                         if ((<HTMLElement>node).tagName === "DIV" &&
                             (<HTMLElement>node).classList.item(0) === "channels") {
                             (<HTMLElement>node).querySelectorAll("ul > ng-include > *").forEach(channel => {
-                                channel.insertAdjacentElement("afterbegin", createTeamsListCheckbox());
+                                insertChannelCheckbox(<HTMLDivElement>channel);
                             })
                         }
                     })
@@ -32,26 +32,26 @@ function createTeamsListCheckboxes() {
     });
 }
 
-function createPostsListCheckboxes() {
-    let insertCheckbox = (postDiv: HTMLDivElement) => {
-        if (postDiv.querySelector(".--embedded-chat-export-selector-post") !== null) {
-            return;
-        }
-
-        let insertPosition = postDiv.querySelector(".clearfix > thread > .ts-message > .conversation-common > thread-body > .thread-body > .media-left");
-        if (insertPosition === null) {
-            return;
-        }
-
-        let input = document.createElement("input");
-        input.type = "checkbox";
-        input.classList.add("--embedded-chat-export-selector-post");
-        insertPosition.insertAdjacentElement("beforeend", input);
+function insertPostCheckbox(postDiv: HTMLDivElement) {
+    if (postDiv.querySelector(".--embedded-chat-export-selector-post") !== null) {
+        return;
     }
 
+    let insertPosition = postDiv.querySelector(".clearfix > thread > .ts-message > .conversation-common > thread-body > .thread-body > .media-left");
+    if (insertPosition === null) {
+        return;
+    }
+
+    let input = document.createElement("input");
+    input.type = "checkbox";
+    input.classList.add("--embedded-chat-export-selector-post");
+    insertPosition.insertAdjacentElement("beforeend", input);
+}
+
+function createPostsListCheckboxes() {
     let posts = document.getElementsByClassName("ts-message-list-item");
     for (let i = 0; i < posts.length; i++) {
-        insertCheckbox(<HTMLDivElement>posts.item(i));
+        insertPostCheckbox(<HTMLDivElement>posts.item(i));
     }
 
     new MutationObserver((mutations, observer) => {
@@ -61,7 +61,7 @@ function createPostsListCheckboxes() {
                     if ((<HTMLElement>node).tagName === "DIV" &&
                         (<HTMLElement>node).classList.contains("ts-message-list-item")) {
 
-                        insertCheckbox(<HTMLDivElement>node);
+                        insertPostCheckbox(<HTMLDivElement>node);
                     }
                 })
             }
@@ -69,25 +69,25 @@ function createPostsListCheckboxes() {
     }).observe(document.getElementsByClassName("ts-message-list-container").item(0), {childList: true});
 }
 
-function createCommentsCheckboxes() {
-    let insertCheckbox = (commentDiv: HTMLDivElement) => {
-        if (commentDiv.querySelector(".--embedded-chat-export-selector-comment") !== null) {
-            return;
-        }
-
-        let insertPosition = commentDiv.querySelector("thread-body > .thread-body > .media-left");
-        if (insertPosition === null) {
-            return;
-        }
-
-        let input = document.createElement("input");
-        input.type = "checkbox";
-        input.classList.add("--embedded-chat-export-selector-comment");
-        insertPosition.insertAdjacentElement("beforeend", input);
+function insertCommentCheckbox(commentDiv: HTMLDivElement) {
+    if (commentDiv.querySelector(".--embedded-chat-export-selector-comment") !== null) {
+        return;
     }
 
+    let insertPosition = commentDiv.querySelector("thread-body > .thread-body > .media-left");
+    if (insertPosition === null) {
+        return;
+    }
+
+    let input = document.createElement("input");
+    input.type = "checkbox";
+    input.classList.add("--embedded-chat-export-selector-comment");
+    insertPosition.insertAdjacentElement("beforeend", input);
+}
+
+function createCommentsCheckboxes() {
     document.querySelectorAll(".conversation-reply").forEach(node => {
-        insertCheckbox(<HTMLDivElement>node);
+        insertCommentCheckbox(<HTMLDivElement>node);
     });
 
     new MutationObserver((mutations) => {
@@ -97,7 +97,7 @@ function createCommentsCheckboxes() {
                     if ((<HTMLElement>node).tagName === "DIV" &&
                         (<HTMLElement>node).classList.contains("conversation-reply")) {
 
-                        insertCheckbox(<HTMLDivElement>node);
+                        insertCommentCheckbox(<HTMLDivElement>node);
                     }
                 })
             }
