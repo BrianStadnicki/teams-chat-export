@@ -2,7 +2,7 @@ import {Renderer} from "./Renderer";
 import {Selection} from "./Types";
 
 let selection: Selection = {
-    channels: []
+    channels: new Map()
 };
 
 let renderer = new Renderer(selection);

@@ -30,18 +30,24 @@ export class Renderer {
     }
 
     private insertChannelCheckbox(channel: HTMLDivElement) {
+        if (channel.children.length !== 1 || channel.id === "") {
+            return;
+        }
         let input = document.createElement("input");
         input.type = "checkbox";
         input.classList.add("--embedded-chat-export-selector-channel");
         channel.insertAdjacentElement("afterbegin", input);
+
+        if (!this.selection.channels.has(channel.id.replace("channel-", ""))) {
+            this.selection.channels.set(channel.id.replace("channel-", ""),
+                {posts: new Map()});
+        }
     }
 
     private createTeamsListCheckboxes() {
         let channels = document.getElementsByClassName("animate-channel-item");
         for (let i = 0; i < channels.length; i++) {
-            if(channels.item(i).children.length === 1) {
-                this.insertChannelCheckbox(<HTMLDivElement>channels.item(i));
-            }
+            this.insertChannelCheckbox(<HTMLDivElement>channels.item(i));
         }
 
         document.querySelectorAll(".team").forEach(team => {
@@ -53,11 +59,11 @@ export class Renderer {
                             (<HTMLElement>node).classList.item(0) === "channels") {
                                 (<HTMLElement>node).querySelectorAll("ul > ng-include > *").forEach(channel => {
                                     this.insertChannelCheckbox(<HTMLDivElement>channel);
-                                })
+                                });
                             }
-                        })
+                        });
                     }
-                })
+                });
             }).observe(team, {childList: true});
         });
     }
@@ -76,6 +82,14 @@ export class Renderer {
         input.type = "checkbox";
         input.classList.add("--embedded-chat-export-selector-post");
         insertPosition.insertAdjacentElement("beforeend", input);
+
+        if (!this.selection.channels.get(this.getActiveChannel()).posts.has(postDiv.attributes.getNamedItem("data-scroll-id").value)) {
+            this.selection.channels.get(this.getActiveChannel())
+                .posts.set(postDiv.attributes.getNamedItem("data-scroll-id").value, {
+                    selected: false,
+                    comments: new Map()
+            });
+        }
     }
 
     private createPostsListCheckboxes() {
@@ -84,17 +98,29 @@ export class Renderer {
             this.insertPostCheckbox(<HTMLDivElement>posts.item(i));
         }
 
+        document.querySelectorAll(".conversation-common.conversation-collapsed > thread-collapsed > div > .expand-collapse").forEach(expandComments => {
+            (<HTMLDivElement>expandComments).click();
+        })
+
         new MutationObserver((mutations, observer) => {
             mutations.forEach((mutation) => {
                 if (mutation.type === "childList") {
                     mutation.addedNodes.forEach(node => {
                         if ((<HTMLElement>node).tagName === "DIV" &&
                             (<HTMLElement>node).classList.contains("ts-message-list-item")) {
+
                             this.insertPostCheckbox(<HTMLDivElement>node);
+
+                            setTimeout(() => {
+                                let collapse = (<HTMLDivElement>(<HTMLElement>node).querySelector(".conversation-common.conversation-collapsed > thread-collapsed > div > .expand-collapse"));
+                                if (collapse !== null) {
+                                    collapse.click();
+                                }
+                            }, 100);
                         }
-                    })
+                    });
                 }
-            })
+            });
         }).observe(document.getElementsByClassName("ts-message-list-container").item(0), {childList: true});
     }
 
@@ -112,6 +138,13 @@ export class Renderer {
         input.type = "checkbox";
         input.classList.add("--embedded-chat-export-selector-comment");
         insertPosition.insertAdjacentElement("beforeend", input);
+
+        if (!this.selection.channels.get(this.getActiveChannel()).posts.get(commentDiv.parentElement.parentElement.parentElement.parentElement
+            .attributes.getNamedItem("data-scroll-id").value).comments.has(commentDiv.querySelector("thread-body > .thread-body").id)) {
+            this.selection.channels.get(this.getActiveChannel()).posts.get(commentDiv.parentElement.parentElement.parentElement.parentElement.attributes.getNamedItem("data-scroll-id").value).comments.set(commentDiv.querySelector("thread-body > .thread-body").id, {
+                selected: false
+            })
+        }
     }
 
     private createCommentsCheckboxes() {
@@ -128,10 +161,13 @@ export class Renderer {
 
                             this.insertCommentCheckbox(<HTMLDivElement>node);
                         }
-                    })
+                    });
                 }
-            })
+            });
         }).observe(document.getElementsByClassName("ts-message-list-container").item(0), {childList: true, subtree: true});
+    }
 
+    private getActiveChannel() {
+        return document.querySelector(".animate-channel-item.left-rail-selected").id.replace("channel-", "");
     }
 }
