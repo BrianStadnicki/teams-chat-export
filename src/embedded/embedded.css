@@ -1,13 +1,3 @@
-.--embedded-chat-export-selector-channel {
-    width: 25px!important;
-    height: 25px!important;
-}
-
-.animate-channel-item:has(.--embedded-chat-export-selector-channel) {
-    display: grid!important;
-    grid-template-columns: 25px 1fr;
-}
-
 .--embedded-chat-export-selector-post {
     display: block!important;
     width: 30px!important;

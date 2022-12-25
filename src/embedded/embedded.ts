@@ -1,23 +1,42 @@
 import {PostsSelector} from "./PostsSelector";
 import {Selection} from "./Types";
+import {getCurrentChannel} from "./Utils";
 
 setInterval(() => {
-    if (document.getElementById("--embedded-chat-export-headbar-export-btn")) return;
+    if (document.getElementById("--embedded-chat-export-menu-export")) return;
 
-    let headers = document.getElementsByClassName("powerbar-profile");
-    if (headers.length !== 1) return;
+    let menus = document.getElementsByClassName("app-default-menu-ul");
+    if (menus.length !== 1) return;
 
-    // add export button
-    headers.item(0).insertAdjacentHTML("afterbegin", `
-                <div id="--embedded-chat-export-headbar-export-btn" class="ts-sym me-profile me-profile-flex">
-                Export
-                </div>
-            `);
+    menus.item(0).insertAdjacentHTML("beforeend", `
+        <div id="--embedded-chat-export-menu-export">
+            <li role="presentation" tabindex="0" class="more-options-item show-top-divider">
+                <a role="menuitem" aria-haspopup="false" aria-expanded="false" class="ts-sym has-icon" tabindex="-1">
+                    <ng-include class="icon" ng-if="menuItem.svgPath" src="menuItem.svgPath">
+                        <svg viewBox="0 0 28 28" role="presentation" class="app-svg icons-msft-sharepoint icons-msft-office-no-padding" focusable="false">
+                        
+                        </svg>
+                    </ng-include>
+                    <span class="ts-popover-label">Export</span>
+                </a>
+            </li>
+        </div>
+    `);
 
-    document.getElementById("--embedded-chat-export-headbar-export-btn").onclick = () => {
-        let renderer = new PostsSelector(selection);
-        renderer.init();
+    let selector = new PostsSelector(selection);
+
+    document.getElementById("--embedded-chat-export-menu-export").onclick = () => {
+        selector.init();
     };
+
+    let originalChannel = getCurrentChannel();
+    window.addEventListener("hashchange", () => {
+        if (originalChannel !== getCurrentChannel()) {
+            selector.destroy();
+        }
+    });
+
+
 }, 50);
 
 let selection: Selection = {

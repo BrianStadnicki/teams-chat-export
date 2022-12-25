@@ -1,33 +1,34 @@
 import {Selection} from "./Types";
+import {getCurrentChannel} from "./Utils";
 
 export class PostsSelector {
     selection: Selection;
+    channel: string;
+    observers: MutationObserver[];
 
     constructor(selection: Selection) {
         this.selection = selection;
-        this.selection.channels.set(this.getActiveChannel(), {posts: new Map()});
+        this.observers = [];
+    }
+
+    init() {
+        this.channel = getCurrentChannel();
+        this.selection.channels.set(this.channel, {posts: new Map()});
         this.createPostsListCheckboxes();
         this.createCommentsCheckboxes();
     }
 
-    init() {
-        setInterval(() => {
-            if (document.getElementById("--embedded-chat-export-headbar-export-btn")) return;
-
-            let headers = document.getElementsByClassName("powerbar-profile");
-            if (headers.length !== 1) return;
-
-            // add export button
-            headers.item(0).insertAdjacentHTML("afterbegin", `
-                <div id="--embedded-chat-export-headbar-export-btn" class="ts-sym me-profile me-profile-flex">
-                Export
-                </div>
-            `);
-
-            document.getElementById("--embedded-chat-export-headbar-export-btn").onclick = () => {
-
-            };
-        }, 50);
+    destroy() {
+        this.selection.channels.delete(this.channel);
+        let posts = document.getElementsByClassName("--embedded-chat-export-selector-post");
+        for (let i = 0; i < posts.length; i++) {
+            document.removeChild(posts.item(i));
+        }
+        let comments = document.getElementsByClassName("--embedded-chat-export-selector-comment");
+        for (let i = 0; i < comments.length; i++) {
+            document.removeChild(comments.item(i));
+        }
+        this.observers.forEach(observer => observer.disconnect());
     }
 
     private insertPostCheckbox(postDiv: HTMLDivElement) {
@@ -47,7 +48,7 @@ export class PostsSelector {
         input.type = "checkbox";
         input.classList.add("--embedded-chat-export-selector-post");
         input.onclick = () => {
-            let post = this.selection.channels.get(this.getActiveChannel()).posts.get(id);
+            let post = this.selection.channels.get(this.channel).posts.get(id);
             post.selected = input.checked;
             for (let key of post.comments.keys()) {
                 let comment = <HTMLInputElement>document.getElementById(`--embedded-chat-export-selector-comment-${key}`);
@@ -58,16 +59,16 @@ export class PostsSelector {
         };
         insertPosition.insertAdjacentElement("beforeend", input);
 
-        if (!this.selection.channels.get(this.getActiveChannel()).posts.has(id)) {
-            this.selection.channels.get(this.getActiveChannel())
+        if (!this.selection.channels.get(this.channel).posts.has(id)) {
+            this.selection.channels.get(this.channel)
                 .posts.set(id, {
                     selected: false,
                     comments: new Map()
             });
         } else {
-            if (this.selection.channels.get(this.getActiveChannel()).posts.get(id).selected) {
+            if (this.selection.channels.get(this.channel).posts.get(id).selected) {
                 input.checked = true;
-                if (![...this.selection.channels.get(this.getActiveChannel()).posts.get(id).comments.values()].every(comment => comment.selected)) {
+                if (![...this.selection.channels.get(this.channel).posts.get(id).comments.values()].every(comment => comment.selected)) {
                     input.indeterminate = true;
                 }
             }
@@ -85,7 +86,7 @@ export class PostsSelector {
             (<HTMLDivElement>expandComments).click();
         })
 
-        new MutationObserver((mutations, observer) => {
+        let observer = new MutationObserver((mutations, observer) => {
             mutations.forEach((mutation) => {
                 if (mutation.type === "childList") {
                     mutation.addedNodes.forEach(node => {
@@ -104,7 +105,9 @@ export class PostsSelector {
                     });
                 }
             });
-        }).observe(document.getElementsByClassName("ts-message-list-container").item(0), {childList: true});
+        })
+        observer.observe(document.getElementsByClassName("ts-message-list-container").item(0), {childList: true});
+        this.observers.push(observer);
     }
 
     private insertCommentCheckbox(commentDiv: HTMLDivElement) {
@@ -125,7 +128,7 @@ export class PostsSelector {
         input.classList.add("--embedded-chat-export-selector-comment");
         input.onclick = () => {
             let postId = commentDiv.parentElement.parentElement.parentElement.parentElement.attributes.getNamedItem("data-scroll-id").value;
-            let post = this.selection.channels.get(this.getActiveChannel()).posts.get(postId);
+            let post = this.selection.channels.get(this.channel).posts.get(postId);
             let postCheckbox = (<HTMLInputElement>document.getElementById(`--embedded-chat-export-selector-post-${postId}`));
             let comment = post.comments.get(id);
             comment.selected = input.checked;
@@ -144,7 +147,7 @@ export class PostsSelector {
         };
         insertPosition.insertAdjacentElement("beforeend", input);
 
-        let post = this.selection.channels.get(this.getActiveChannel()).posts.get(commentDiv.parentElement.parentElement.parentElement.parentElement
+        let post = this.selection.channels.get(this.channel).posts.get(commentDiv.parentElement.parentElement.parentElement.parentElement
             .attributes.getNamedItem("data-scroll-id").value);
 
         if (!post.comments.has(id)) {
@@ -161,7 +164,7 @@ export class PostsSelector {
             this.insertCommentCheckbox(<HTMLDivElement>node);
         });
 
-        new MutationObserver((mutations) => {
+        let observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.type === "childList") {
                     mutation.addedNodes.forEach(node => {
@@ -173,10 +176,8 @@ export class PostsSelector {
                     });
                 }
             });
-        }).observe(document.getElementsByClassName("ts-message-list-container").item(0), {childList: true, subtree: true});
-    }
-
-    private getActiveChannel() {
-        return document.querySelector(".animate-channel-item.left-rail-selected").id.replace("channel-", "");
+        })
+        observer.observe(document.getElementsByClassName("ts-message-list-container").item(0), {childList: true, subtree: true});
+        this.observers.push(observer);
     }
 }
