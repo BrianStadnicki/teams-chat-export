@@ -1,6 +1,6 @@
 import {Selection} from "./Types";
 
-export class Renderer {
+export class PostsSelector {
     selection: Selection;
 
     constructor(selection: Selection) {
@@ -22,52 +22,11 @@ export class Renderer {
             `);
 
             document.getElementById("--embedded-chat-export-headbar-export-btn").onclick = () => {
-                this.createTeamsListCheckboxes();
+                this.selection.channels.set(this.getActiveChannel(), {posts: new Map()});
                 this.createPostsListCheckboxes();
                 this.createCommentsCheckboxes();
             };
         }, 50);
-    }
-
-    private insertChannelCheckbox(channel: HTMLDivElement) {
-        if (channel.children.length !== 1 || channel.id === "") {
-            return;
-        }
-        let id = channel.id.replace("channel-", "");
-
-        let input = document.createElement("input");
-        input.id = `--embedded-chat-export-selector-channel-${id}`;
-        input.type = "checkbox";
-        input.classList.add("--embedded-chat-export-selector-channel");
-        channel.insertAdjacentElement("afterbegin", input);
-
-        if (!this.selection.channels.has(id)) {
-            this.selection.channels.set(id, {posts: new Map()});
-        }
-    }
-
-    private createTeamsListCheckboxes() {
-        let channels = document.getElementsByClassName("animate-channel-item");
-        for (let i = 0; i < channels.length; i++) {
-            this.insertChannelCheckbox(<HTMLDivElement>channels.item(i));
-        }
-
-        document.querySelectorAll(".team").forEach(team => {
-            new MutationObserver((mutations, observer) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.type === "childList") {
-                        mutation.addedNodes.forEach(node => {
-                            if ((<HTMLElement>node).tagName === "DIV" &&
-                            (<HTMLElement>node).classList.item(0) === "channels") {
-                                (<HTMLElement>node).querySelectorAll("ul > ng-include > *").forEach(channel => {
-                                    this.insertChannelCheckbox(<HTMLDivElement>channel);
-                                });
-                            }
-                        });
-                    }
-                });
-            }).observe(team, {childList: true});
-        });
     }
 
     private insertPostCheckbox(postDiv: HTMLDivElement) {
