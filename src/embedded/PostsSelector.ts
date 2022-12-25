@@ -5,6 +5,9 @@ export class PostsSelector {
 
     constructor(selection: Selection) {
         this.selection = selection;
+        this.selection.channels.set(this.getActiveChannel(), {posts: new Map()});
+        this.createPostsListCheckboxes();
+        this.createCommentsCheckboxes();
     }
 
     init() {
@@ -22,9 +25,7 @@ export class PostsSelector {
             `);
 
             document.getElementById("--embedded-chat-export-headbar-export-btn").onclick = () => {
-                this.selection.channels.set(this.getActiveChannel(), {posts: new Map()});
-                this.createPostsListCheckboxes();
-                this.createCommentsCheckboxes();
+
             };
         }, 50);
     }
