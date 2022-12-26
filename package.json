@@ -11,5 +11,8 @@
   "scripts": {
     "start": "parcel manifest.json",
     "build": "parcel build manifest.json"
+  },
+  "dependencies": {
+    "jspdf": "^2.5.1"
   }
 }

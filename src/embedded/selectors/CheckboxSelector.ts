@@ -21,7 +21,6 @@ export class CheckboxSelector implements Selector {
     }
 
     destroy() {
-        this.selection.channels.delete(this.channel);
         document.querySelectorAll(".--embedded-chat-export-selector-post").forEach(post => post.remove());
         document.querySelectorAll(".--embedded-chat-export-selector-comment").forEach(comment => comment.remove());
         this.observers.forEach(observer => observer.disconnect());

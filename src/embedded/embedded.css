@@ -33,3 +33,10 @@
     border: red solid 5px!important;
     border-radius: 5px!important;
 }
+
+#--embedded-chat-export-options-form-cancel {
+    margin-left: 20px;
+    border: red solid 5px;
+    border-radius: 5px;
+    color: red;
+}
