@@ -6,7 +6,7 @@ export class CheckboxSelector implements Selector {
     selection: Selection;
     channel: string;
     observers: MutationObserver[];
-    enablePostHook: (post: HTMLDivElement) => boolean;
+    enablePostHook: (post: HTMLDivElement) => Promise<boolean>;
 
     constructor(selection: Selection) {
         this.selection = selection;
@@ -55,23 +55,33 @@ export class CheckboxSelector implements Selector {
         };
         insertPosition.insertAdjacentElement("beforeend", input);
 
-        let selected = this.enablePostHook ? this.enablePostHook(postDiv) : false;
+        let setSelected = (selected) => {
+            input.checked = selected;
 
-        input.checked = selected;
-
-        if (!this.selection.channels.get(this.channel).posts.has(id)) {
-            this.selection.channels.get(this.channel)
-                .posts.set(id, {
+            if (!this.selection.channels.get(this.channel).posts.has(id)) {
+                this.selection.channels.get(this.channel)
+                    .posts.set(id, {
                     selected: selected,
                     comments: new Map()
-            });
-        } else {
-            if (this.selection.channels.get(this.channel).posts.get(id).selected) {
-                input.checked = true;
-                if (![...this.selection.channels.get(this.channel).posts.get(id).comments.values()].every(comment => comment.selected)) {
-                    input.indeterminate = true;
+                });
+            } else {
+                if (this.selection.channels.get(this.channel).posts.get(id).selected) {
+                    input.checked = true;
+                    if (![...this.selection.channels.get(this.channel).posts.get(id).comments.values()].every(comment => comment.selected)) {
+                        input.indeterminate = true;
+                    }
+                } else if (this.selection.channels.get(this.channel).posts.get(id).selected === undefined) {
+                    let post = this.selection.channels.get(this.channel).posts.get(id);
+                    post.selected = selected;
+                    post.comments.forEach(comment => comment.selected = selected);
                 }
             }
+        }
+
+        if (this.enablePostHook) {
+            this.enablePostHook(postDiv).then((selected) => setSelected(selected));
+        } else {
+            setSelected(false);
         }
     }
 
@@ -153,6 +163,16 @@ export class CheckboxSelector implements Selector {
 
         let post = this.selection.channels.get(this.channel).posts.get(commentDiv.parentElement.parentElement.parentElement.parentElement
             .attributes.getNamedItem("data-scroll-id").value);
+
+        if (!post) {
+            post = {
+                selected: undefined,
+                comments: new Map()
+            };
+
+            this.selection.channels.get(this.channel).posts.set(commentDiv.parentElement.parentElement.parentElement.parentElement
+                .attributes.getNamedItem("data-scroll-id").value, post);
+        }
 
         if (!post.comments.has(id)) {
             post.comments.set(id, {
