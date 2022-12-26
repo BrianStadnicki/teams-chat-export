@@ -1,7 +1,8 @@
-import {Selection} from "./Types";
-import {getCurrentChannel} from "./Utils";
+import {Selection} from "../Types";
+import {getCurrentChannel} from "../Utils";
+import {Selector} from "../Selector";
 
-export class PostsSelector {
+export class CheckboxSelector implements Selector {
     selection: Selection;
     channel: string;
     observers: MutationObserver[];
@@ -20,14 +21,8 @@ export class PostsSelector {
 
     destroy() {
         this.selection.channels.delete(this.channel);
-        let posts = document.getElementsByClassName("--embedded-chat-export-selector-post");
-        for (let i = 0; i < posts.length; i++) {
-            document.removeChild(posts.item(i));
-        }
-        let comments = document.getElementsByClassName("--embedded-chat-export-selector-comment");
-        for (let i = 0; i < comments.length; i++) {
-            document.removeChild(comments.item(i));
-        }
+        document.querySelectorAll(".--embedded-chat-export-selector-post").forEach(post => post.remove());
+        document.querySelectorAll(".--embedded-chat-export-selector-comment").forEach(comment => comment.remove());
         this.observers.forEach(observer => observer.disconnect());
     }
 
@@ -46,7 +41,7 @@ export class PostsSelector {
         let input = <HTMLInputElement>document.createElement("input");
         input.id = `--embedded-chat-export-selector-post-${id}`;
         input.type = "checkbox";
-        input.classList.add("--embedded-chat-export-selector-post");
+        input.className = "--embedded-chat-export-selector-post";
         input.onclick = () => {
             let post = this.selection.channels.get(this.channel).posts.get(id);
             post.selected = input.checked;
@@ -75,16 +70,17 @@ export class PostsSelector {
         }
     }
 
-    private createPostsListCheckboxes() {
+    createPostsListCheckboxes() {
         let posts = document.getElementsByClassName("ts-message-list-item");
         for (let i = 0; i < posts.length; i++) {
             this.insertPostCheckbox(<HTMLDivElement>posts.item(i));
         }
 
         document.querySelectorAll(".conversation-common.conversation-collapsed > thread-collapsed > div > .expand-collapse:not(.chevron-expanded)").forEach(expandComments => {
-
             (<HTMLDivElement>expandComments).click();
         })
+
+        document.querySelectorAll(".ts-see-more-button.ts-see-more-fold").forEach(btn => (<HTMLButtonElement>btn).click());
 
         let observer = new MutationObserver((mutations, observer) => {
             mutations.forEach((mutation) => {
@@ -100,7 +96,10 @@ export class PostsSelector {
                                 if (collapse !== null) {
                                     collapse.click();
                                 }
-                            }, 100);
+
+                                let showMore = (<HTMLElement>node).querySelector(".ts-see-more-button.ts-see-more-fold");
+                                if (showMore) (<HTMLButtonElement>showMore).click();
+                            }, 200);
                         }
                     });
                 }
@@ -125,7 +124,7 @@ export class PostsSelector {
         let input = <HTMLInputElement>document.createElement("input");
         input.id = `--embedded-chat-export-selector-comment-${id}`;
         input.type = "checkbox";
-        input.classList.add("--embedded-chat-export-selector-comment");
+        input.className = "--embedded-chat-export-selector-comment";
         input.onclick = () => {
             let postId = commentDiv.parentElement.parentElement.parentElement.parentElement.attributes.getNamedItem("data-scroll-id").value;
             let post = this.selection.channels.get(this.channel).posts.get(postId);
@@ -150,16 +149,22 @@ export class PostsSelector {
         let post = this.selection.channels.get(this.channel).posts.get(commentDiv.parentElement.parentElement.parentElement.parentElement
             .attributes.getNamedItem("data-scroll-id").value);
 
+        if (!post) {
+            post = {selected: false, comments: new Map()};
+            this.selection.channels.get(this.channel).posts.set(commentDiv.parentElement.parentElement.parentElement.parentElement
+                .attributes.getNamedItem("data-scroll-id").value, post);
+        }
+
         if (!post.comments.has(id)) {
             post.comments.set(id, {
-                selected: false
+                selected: post.selected
             })
         } else {
             input.checked = post.comments.get(id).selected;
         }
     }
 
-    private createCommentsCheckboxes() {
+    createCommentsCheckboxes() {
         document.querySelectorAll(".conversation-reply").forEach(node => {
             this.insertCommentCheckbox(<HTMLDivElement>node);
         });
@@ -179,5 +184,31 @@ export class PostsSelector {
         })
         observer.observe(document.getElementsByClassName("ts-message-list-container").item(0), {childList: true, subtree: true});
         this.observers.push(observer);
+    }
+
+    private loadingInterval: number;
+    private oldestPostChecks: number;
+    private oldestPostId: string;
+
+    startLoading() {
+        this.oldestPostChecks = 0;
+        this.loadingInterval = setInterval(() => {
+            document.querySelector(".vr-item-placeholders").scrollIntoView(true);
+            let oldestMessage = document.querySelector(".ts-message-list-item");
+            let currentId = oldestMessage.getAttribute("data-scroll-id");
+            if (currentId !== this.oldestPostId) {
+                this.oldestPostId = currentId;
+                this.oldestPostChecks = 0;
+            } else {
+                this.oldestPostChecks += 1;
+            }
+            if (this.oldestPostChecks === 5) {
+                this.stopLoading();
+            }
+        }, 500);
+    }
+
+    stopLoading() {
+        clearInterval(this.loadingInterval);
     }
 }

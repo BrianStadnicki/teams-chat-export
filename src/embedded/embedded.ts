@@ -1,6 +1,4 @@
-import {PostsSelector} from "./PostsSelector";
-import {Selection} from "./Types";
-import {getCurrentChannel} from "./Utils";
+import {Sidebar} from "./Sidebar";
 
 setInterval(() => {
     if (document.getElementById("--embedded-chat-export-menu-export")) return;
@@ -23,22 +21,8 @@ setInterval(() => {
         </div>
     `);
 
-    let selector = new PostsSelector(selection);
-
     document.getElementById("--embedded-chat-export-menu-export").onclick = () => {
-        selector.init();
+        let sidebar = new Sidebar();
+        sidebar.init();
     };
-
-    let originalChannel = getCurrentChannel();
-    window.addEventListener("hashchange", () => {
-        if (originalChannel !== getCurrentChannel()) {
-            selector.destroy();
-        }
-    });
-
-
 }, 50);
-
-let selection: Selection = {
-    channels: new Map()
-};
