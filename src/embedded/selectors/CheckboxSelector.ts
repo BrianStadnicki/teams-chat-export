@@ -6,6 +6,7 @@ export class CheckboxSelector implements Selector {
     selection: Selection;
     channel: string;
     observers: MutationObserver[];
+    enablePostHook: (post: HTMLDivElement) => boolean;
 
     constructor(selection: Selection) {
         this.selection = selection;
@@ -54,10 +55,14 @@ export class CheckboxSelector implements Selector {
         };
         insertPosition.insertAdjacentElement("beforeend", input);
 
+        let selected = this.enablePostHook ? this.enablePostHook(postDiv) : false;
+
+        input.checked = selected;
+
         if (!this.selection.channels.get(this.channel).posts.has(id)) {
             this.selection.channels.get(this.channel)
                 .posts.set(id, {
-                    selected: false,
+                    selected: selected,
                     comments: new Map()
             });
         } else {
@@ -149,16 +154,11 @@ export class CheckboxSelector implements Selector {
         let post = this.selection.channels.get(this.channel).posts.get(commentDiv.parentElement.parentElement.parentElement.parentElement
             .attributes.getNamedItem("data-scroll-id").value);
 
-        if (!post) {
-            post = {selected: false, comments: new Map()};
-            this.selection.channels.get(this.channel).posts.set(commentDiv.parentElement.parentElement.parentElement.parentElement
-                .attributes.getNamedItem("data-scroll-id").value, post);
-        }
-
         if (!post.comments.has(id)) {
             post.comments.set(id, {
                 selected: post.selected
-            })
+            });
+            input.checked = post.selected;
         } else {
             input.checked = post.comments.get(id).selected;
         }
