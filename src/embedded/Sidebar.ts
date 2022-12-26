@@ -52,6 +52,8 @@ export class Sidebar {
                     case "date":
                         this.selector = new DateSelector(this.selection, new Date(<string>options.get("selection-date-lower")), new Date(<string>options.get("selection-date-upper")));
                         break;
+                    default:
+                        return;
                 }
 
                 this.selector.init();
