@@ -23,3 +23,13 @@
 .media-left:has(.--embedded-chat-export-selector-comment) {
     display: block!important;
 }
+
+#--embedded-chat-export-top-bar-loading {
+    margin-top: 10px!important;
+    margin-right: 10px!important;
+}
+
+#--embedded-chat-export-top-bar-loading-cancel {
+    border: red solid 5px!important;
+    border-radius: 5px!important;
+}

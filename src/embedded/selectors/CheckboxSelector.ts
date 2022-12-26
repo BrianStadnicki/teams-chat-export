@@ -193,7 +193,7 @@ export class CheckboxSelector implements Selector {
     startLoading() {
         this.oldestPostChecks = 0;
         this.loadingInterval = setInterval(() => {
-            document.querySelector(".vr-item-placeholders").scrollIntoView(true);
+            document.querySelector(".ts-message-list-container").scrollIntoView();
             let oldestMessage = document.querySelector(".ts-message-list-item");
             let currentId = oldestMessage.getAttribute("data-scroll-id");
             if (currentId !== this.oldestPostId) {
@@ -206,9 +206,20 @@ export class CheckboxSelector implements Selector {
                 this.stopLoading();
             }
         }, 500);
+
+        document.querySelector(".ts-tab-bar-wrapper").insertAdjacentHTML("beforeend", `
+            <p id="--embedded-chat-export-top-bar-loading">Loading...</p>
+            <button id="--embedded-chat-export-top-bar-loading-cancel">Cancel</button>
+        `);
+
+        document.getElementById("--embedded-chat-export-top-bar-loading-cancel").onclick = () => {
+            this.stopLoading();
+        };
     }
 
     stopLoading() {
         clearInterval(this.loadingInterval);
+        document.getElementById("--embedded-chat-export-top-bar-loading").remove();
+        document.getElementById("--embedded-chat-export-top-bar-loading-cancel").remove();
     }
 }
