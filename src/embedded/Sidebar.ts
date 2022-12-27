@@ -112,6 +112,7 @@ export class Sidebar {
             originalMessageContainer.style.display = "none";
             originalMessageContainer.insertAdjacentElement("afterend", newMessageContainer);
 
+            newMessageContainer.querySelectorAll(".message-list-divider").forEach(divider => divider.remove());
             newMessageContainer.querySelectorAll(".thread-body-status").forEach(status => status.remove());
             let height = 0;
             newMessageContainer.querySelectorAll(".ts-message-list-item").forEach(post => {
