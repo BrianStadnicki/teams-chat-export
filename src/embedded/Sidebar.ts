@@ -4,6 +4,7 @@ import {CheckboxSelector} from "./selectors/CheckboxSelector";
 import {AllSelector} from "./selectors/AllSelector";
 import {DateSelector} from "./selectors/DateSelector";
 import {getCurrentChannel} from "./Utils";
+import domToImage from 'dom-to-image';
 
 export class Sidebar {
     selection: Selection;
@@ -34,8 +35,8 @@ export class Sidebar {
                     <br>
                     
                     <p>As</p>
-                    <input type="radio" class="--embedded-chat-export-options-form-format" name="format" id="--embedded-chat-export-options-form-format-pdf" value="pdf">
-                    <label for="--embedded-chat-export-options-form-format-pdf">PDF</label>
+                    <input type="radio" class="--embedded-chat-export-options-form-format" name="format" id="--embedded-chat-export-options-form-format-png" value="png">
+                    <label for="--embedded-chat-export-options-form-format-png">PNG</label>
                     
                     <br>
                     
@@ -72,6 +73,10 @@ export class Sidebar {
             }
         }
 
+        form.onsubmit = (ev) => {
+            ev.preventDefault();
+        }
+
         (<HTMLButtonElement>mainScreen.querySelector("#--embedded-chat-export-options-form-cancel")).onclick = (ev) => {
             ev.preventDefault();
             this.destroy();
@@ -82,17 +87,49 @@ export class Sidebar {
 
             let data = new FormData(<HTMLFormElement>mainScreen.querySelector("#--embedded-chat-export-options-form"));
             let format = data.get("format");
+
+            if (format === null) return;
+
+            this.selector.destroy();
+            let selectedPosts = [...this.selection.channels.get(getCurrentChannel()).posts.entries()].filter((post) => post[1].selected).map(post => post[0]);
+            let selectedComments = [...this.selection.channels.get(getCurrentChannel()).posts.entries()].filter((post) => post[1].selected).map(post => [...post[1].comments.entries()]).map(comments => comments.filter(comment => comment[1].selected));
+
+            let newMessageContainer: HTMLDivElement = document.createElement("div");
+            newMessageContainer.id = "--embedded-chat-export-selector-messages-new";
+            newMessageContainer.style.height = "min-content";
+
+            selectedPosts.forEach(post => {
+                let div = document.querySelector(`div[data-scroll-id="${post}"]`)
+                if (div) {
+                    (<HTMLDivElement>div).style.inset = "";
+                    (<HTMLDivElement>div).style.insetBlock = "";
+                    (<HTMLDivElement>div).style.display = "block";
+                    newMessageContainer.insertAdjacentElement("beforeend", div);
+                }
+            });
+
+            let originalMessageContainer: HTMLDivElement = document.querySelector(".ts-message-list-container");
+            originalMessageContainer.style.display = "none";
+            originalMessageContainer.insertAdjacentElement("afterend", newMessageContainer);
+
+            newMessageContainer.querySelectorAll(".thread-body-status").forEach(status => status.remove());
+            let height = 0;
+            newMessageContainer.querySelectorAll(".ts-message-list-item").forEach(post => {
+                height += Number.parseInt((<HTMLDivElement>post).style.height.replace("px", "")) + 5;
+                (<HTMLDivElement>post).style.all = "unset";
+            });
+            newMessageContainer.style.height = `${height}px`;
+
             switch (format) {
-                case "pdf":
-                    this.selector.destroy();
-                    let notSelectedPosts = [...this.selection.channels.get(getCurrentChannel()).posts.entries()].filter((post) => !post[1].selected).map(post => post[0]);
-                    let notSelectedComments = [...this.selection.channels.get(getCurrentChannel()).posts.entries()].filter((post) => post[1].selected).map(post => [...post[1].comments.entries()]).map(comments => comments.filter(comment => !comment[1].selected));
-                    console.log(notSelectedPosts, notSelectedComments);
-                    notSelectedPosts.forEach(post => {
-                        let div = document.querySelector(`div[data-scroll-id="${post}"]`)
-                        if (div) div.remove();
+                case "png":
+                    domToImage.toPng(newMessageContainer, {
+                        height: height,
+                        imagePlaceholder: "data:image/png;base64,"
                     })
-                    document.querySelector(".vr-item-placeholders").remove();
+                        .then(dataUrl => {
+                            this.download(dataUrl, "export.png");
+                            this.destroy();
+                        });
                     break;
             }
         }
@@ -106,5 +143,15 @@ export class Sidebar {
         if (this.selector) this.selector.destroy();
         document.getElementById("--embedded-chat-export-main").remove();
         (<HTMLDivElement>document.querySelector(".ts-channel-list")).style.display = "initial";
+        (<HTMLDivElement>document.querySelector(".ts-message-list-container")).style.display = "block";
+        let newMessagesContainer = document.querySelector("#--embedded-chat-export-selector-messages-new");
+        if (newMessagesContainer) newMessagesContainer.remove();
+    }
+
+    private download(dataUrl, filename) {
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = filename;
+        link.click();
     }
 }
