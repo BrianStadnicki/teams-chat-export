@@ -41,7 +41,7 @@ export class Sidebar {
                     <input type="radio" class="--embedded-chat-export-options-form-format" name="format" id="--embedded-chat-export-options-form-format-svg" value="svg">
                     <label for="--embedded-chat-export-options-form-format-svg">SVG</label>
                     <br>
-                                        
+
                     <button id="--embedded-chat-export-options-form-export">Export</button>
                     <button id="--embedded-chat-export-options-form-cancel">Cancel</button>
                 </form>
@@ -100,15 +100,14 @@ export class Sidebar {
             newMessageContainer.id = "--embedded-chat-export-selector-messages-new";
             newMessageContainer.style.height = "min-content";
 
-            selectedPosts.forEach(post => {
-                let div = document.querySelector(`div[data-scroll-id="${post}"]`)
-                if (div) {
+            document.querySelectorAll(".ts-message-list-item").forEach(div => {
+                if (selectedPosts.find(post => post === (<HTMLDivElement>div).getAttribute("data-scroll-id"))) {
                     (<HTMLDivElement>div).style.inset = "";
                     (<HTMLDivElement>div).style.insetBlock = "";
                     (<HTMLDivElement>div).style.display = "block";
                     newMessageContainer.insertAdjacentElement("beforeend", div);
                 }
-            });
+            })
 
             let originalMessageContainer: HTMLDivElement = document.querySelector(".ts-message-list-container");
             originalMessageContainer.style.display = "none";
