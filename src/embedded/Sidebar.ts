@@ -37,9 +37,11 @@ export class Sidebar {
                     <p>As</p>
                     <input type="radio" class="--embedded-chat-export-options-form-format" name="format" id="--embedded-chat-export-options-form-format-png" value="png">
                     <label for="--embedded-chat-export-options-form-format-png">PNG</label>
-                    
                     <br>
-                    
+                    <input type="radio" class="--embedded-chat-export-options-form-format" name="format" id="--embedded-chat-export-options-form-format-svg" value="svg">
+                    <label for="--embedded-chat-export-options-form-format-svg">SVG</label>
+                    <br>
+                                        
                     <button id="--embedded-chat-export-options-form-export">Export</button>
                     <button id="--embedded-chat-export-options-form-cancel">Cancel</button>
                 </form>
@@ -125,10 +127,20 @@ export class Sidebar {
                 case "png":
                     domToImage.toPng(newMessageContainer, {
                         height: height,
-                        imagePlaceholder: "data:image/png;base64,"
+                        imagePlaceholder: "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==\n"
                     })
                         .then(dataUrl => {
                             this.download(dataUrl, "export.png");
+                            this.destroy();
+                        });
+                    break;
+                case "svg":
+                    domToImage.toSvg(newMessageContainer, {
+                        height: height,
+                        imagePlaceholder: "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==\n"
+                    })
+                        .then(dataUrl => {
+                            this.download(dataUrl, "export.svg");
                             this.destroy();
                         });
                     break;
