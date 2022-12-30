@@ -212,7 +212,7 @@ export class CheckboxSelector implements Selector {
     startLoading() {
         this.oldestPostChecks = 0;
         this.loadingInterval = setInterval(() => {
-            document.querySelector(".ts-message-list").scrollTo(0, 0);
+            document.querySelector(".ts-message-list-container").scrollIntoView();
             let oldestMessage = document.querySelector(".ts-message-list-item");
             let currentId = oldestMessage.getAttribute("data-scroll-id");
             if (currentId !== this.oldestPostId) {

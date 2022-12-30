@@ -4,7 +4,6 @@ import {CheckboxSelector} from "./selectors/CheckboxSelector";
 import {AllSelector} from "./selectors/AllSelector";
 import {DateSelector} from "./selectors/DateSelector";
 import {getCurrentChannel} from "./Utils";
-import domToImage from 'dom-to-image';
 
 export class Sidebar {
     selection: Selection;
@@ -93,55 +92,30 @@ export class Sidebar {
             if (format === null) return;
 
             this.selector.destroy();
+
+            let messageContainer = <HTMLDivElement>document.querySelector(".ts-message-list-container");
+
             let selectedPosts = [...this.selection.channels.get(getCurrentChannel()).posts.entries()].filter((post) => post[1].selected).map(post => post[0]);
             let selectedComments = [...this.selection.channels.get(getCurrentChannel()).posts.entries()].filter((post) => post[1].selected).map(post => [...post[1].comments.entries()]).map(comments => comments.filter(comment => comment[1].selected));
 
-            let newMessageContainer: HTMLDivElement = document.createElement("div");
-            newMessageContainer.id = "--embedded-chat-export-selector-messages-new";
-            newMessageContainer.style.height = "min-content";
+            messageContainer.querySelectorAll(".thread-body-status").forEach(status => status.remove());
 
-            document.querySelectorAll(".ts-message-list-item").forEach(div => {
-                if (selectedPosts.find(post => post === (<HTMLDivElement>div).getAttribute("data-scroll-id"))) {
-                    (<HTMLDivElement>div).style.inset = "";
-                    (<HTMLDivElement>div).style.insetBlock = "";
-                    (<HTMLDivElement>div).style.display = "block";
-                    newMessageContainer.insertAdjacentElement("beforeend", div);
-                }
-            })
+            console.log(selectedPosts);
 
-            let originalMessageContainer: HTMLDivElement = document.querySelector(".ts-message-list-container");
-            originalMessageContainer.style.display = "none";
-            originalMessageContainer.insertAdjacentElement("afterend", newMessageContainer);
-
-            newMessageContainer.querySelectorAll(".message-list-divider").forEach(divider => divider.remove());
-            newMessageContainer.querySelectorAll(".thread-body-status").forEach(status => status.remove());
-            let height = 0;
-            newMessageContainer.querySelectorAll(".ts-message-list-item").forEach(post => {
-                height += Number.parseInt((<HTMLDivElement>post).style.height.replace("px", "")) + 5;
-                (<HTMLDivElement>post).style.all = "unset";
-            });
-            newMessageContainer.style.height = `${height}px`;
+           document.querySelectorAll(".ts-message-list-item").forEach(post => {
+               post.scrollIntoView(true);
+               let id = post.getAttribute("data-scroll-id");
+               if (selectedPosts.find(a => a === id)) {
+                   console.log(id);
+               }
+           });
 
             switch (format) {
                 case "png":
-                    domToImage.toPng(newMessageContainer, {
-                        height: height,
-                        imagePlaceholder: "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==\n"
-                    })
-                        .then(dataUrl => {
-                            this.download(dataUrl, "export.png");
-                            this.destroy();
-                        });
+
                     break;
                 case "svg":
-                    domToImage.toSvg(newMessageContainer, {
-                        height: height,
-                        imagePlaceholder: "data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==\n"
-                    })
-                        .then(dataUrl => {
-                            this.download(dataUrl, "export.svg");
-                            this.destroy();
-                        });
+
                     break;
             }
         }
