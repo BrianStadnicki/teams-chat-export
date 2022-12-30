@@ -22,7 +22,8 @@
     }
   ],
   "permissions": [
-    "storage"
+    "storage",
+    "tabs"
   ],
   "host_permissions": [
     "https://teams.microsoft.com/"

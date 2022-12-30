@@ -1,42 +1,82 @@
-.--embedded-chat-export-selector-post {
-    display: block!important;
-    width: 30px!important;
-    height: 30px!important;
-    margin-top: 20px!important;
-    margin-left: auto!important;
-    margin-right: auto!important;
+#--embedded-chat-export-options-form-banner > .parent {
+    margin-left: auto;
+    margin-right: 20px;
 }
 
-.media-left:has(.--embedded-chat-export-selector-post) {
-    display: block!important;
-}
-
-.--embedded-chat-export-selector-comment {
-    display: block!important;
-    width: 20px!important;
-    height: 20px!important;
-    margin-top: 10px!important;
-    margin-left: auto!important;
-    margin-right: auto!important;
-}
-
-.media-left:has(.--embedded-chat-export-selector-comment) {
-    display: block!important;
-}
-
-#--embedded-chat-export-top-bar-loading {
-    margin-top: 10px!important;
-    margin-right: 10px!important;
-}
-
-#--embedded-chat-export-top-bar-loading-cancel {
-    border: red solid 5px!important;
-    border-radius: 5px!important;
+#--embedded-chat-export-options-form-export {
+    margin-left: 20px;
+    border: blue solid 5px;
+    border-radius: 5px;
+    color: blue;
 }
 
 #--embedded-chat-export-options-form-cancel {
-    margin-left: 20px;
     border: red solid 5px;
     border-radius: 5px;
     color: red;
+}
+
+input[name="selection-date-lower"], input[name="selection-date-upper"] {
+    width: 40%;
+}
+
+input[name="selection-number-first"], input[name="selection-number-last"] {
+    width: 40%;
+    margin-left: 10px;
+}
+
+#--embedded-chat-export-main {
+    width: 50rem;
+}
+
+#--embedded-chat-export-options-form {
+    display: grid;
+    grid-template-columns: [white-space\:-nowrap\;] 50% 50%;
+    grid-template-rows: 1fr 100px;
+    gap: 0px 0px;
+    grid-auto-flow: row;
+    grid-template-areas:
+    "options teams"
+    "banner banner";
+    height: 90vh;
+}
+
+#--embedded-chat-export-options-form-options { grid-area: options; }
+
+#--embedded-chat-export-options-form-teams {
+    overflow-y: auto;
+    grid-area: teams;
+}
+
+#--embedded-chat-export-options-form-teams > hr {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+#--embedded-chat-export-options-form-banner {
+    grid-area: banner;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.--embedded-chat-export-options-form-channel-label {
+    display: inline;
+}
+
+.--embedded-chat-export-options-form-channel-input.main {
+    margin-top: 5px;
+}
+
+.--embedded-chat-export-options-form-channel-label.main {
+    margin-left: 5px;
+}
+
+.--embedded-chat-export-options-form-channel-label.sub {
+    margin-left: 20px;
+}
+
+#--embedded-chat-export-options-form-teams-select-all-none {
+    float: right;
+    font-size: small;
 }
