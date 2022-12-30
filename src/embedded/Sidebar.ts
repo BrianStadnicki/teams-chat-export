@@ -29,10 +29,10 @@ export class Sidebar {
                         
                         <h4>As</h4>
                         <input type="radio" class="--embedded-chat-export-options-form-format" name="format" id="--embedded-chat-export-options-form-format-txt" value="txt">
-                        <label for="--embedded-chat-export-options-form-format-png">TXT</label>
+                        <label for="--embedded-chat-export-options-form-format-txt">TXT</label>
                         <br>
                         <input type="radio" class="--embedded-chat-export-options-form-format" name="format" id="--embedded-chat-export-options-form-format-pdf" value="pdf">
-                        <label for="--embedded-chat-export-options-form-format-svg">PDF</label>
+                        <label for="--embedded-chat-export-options-form-format-pdf">PDF</label>
                     </div>
                     
                     <div id="--embedded-chat-export-options-form-teams">
@@ -64,10 +64,54 @@ export class Sidebar {
 
             let data = new FormData(<HTMLFormElement>mainScreen.querySelector("#--embedded-chat-export-options-form"));
             let format = data.get("format");
-
-            console.log(data.getAll("channel"));
-
             if (format === null) return;
+
+            let threadFilter: (thread: object) => boolean;
+
+            switch(data.get("selection")) {
+                case "all":
+                    threadFilter = () => true;
+                    break;
+                case "date":
+                    threadFilter = (thread) => {
+                        if (thread["messageMap"].length === 0) return false;
+                        let lastMessageDate = new Date(thread["messageMap"][Object.keys(thread["messageMap"])[0]]["originalArrivalTime"]);
+                        return new Date(data.get("selection-date-lower").toString()) <= lastMessageDate &&
+                            new Date(data.get("selection-date-upper").toString()) >= lastMessageDate;
+                    };
+                    break;
+                case "first-messages":
+
+                    break;
+                case "last-messages":
+
+                    break;
+            }
+
+            let threads = new Map<string, object[]>();
+            data.getAll("channel").forEach(channel => {
+                threads.set(channel.toString(), []);
+            })
+
+            window.indexedDB.databases().then(databases => {
+                let openRequest = window.indexedDB.open(databases.find(database => database.name.startsWith("Teams:replychain-manager:")).name);
+                openRequest.onsuccess = () => {
+                    let db = openRequest.result;
+                    const objectStore = db.transaction("replychains").objectStore("replychains");
+                    objectStore.openCursor().onsuccess = (event) => {
+                        const cursor: IDBCursorWithValue = event.target["result"];
+                        if (cursor) {
+                            if (data.getAll("channel").find(channel => channel == cursor.key[0]) &&
+                                    threadFilter(cursor.value)) {
+                                threads.get(cursor.key[0]).push(cursor.value);
+                            }
+                            cursor.continue();
+                        } else {
+                            console.log(threads);
+                        }
+                    }
+                };
+            });
         }
 
         window.indexedDB.databases().then(databases => {
