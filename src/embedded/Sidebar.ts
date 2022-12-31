@@ -1,6 +1,12 @@
+import {Channel, Conversation, Message, Topic} from "./Types";
+import {TXTFormat} from "./formats/TXTFormat";
+import {Format} from "./formats/Format";
+
 export class Sidebar {
 
     init() {
+        // setup main screen
+
         let mainScreen = <HTMLDivElement>document.createElement("div");
         mainScreen.id = "--embedded-chat-export-main";
         mainScreen.innerHTML = `
@@ -49,16 +55,16 @@ export class Sidebar {
         `;
 
         let form = (<HTMLFormElement>mainScreen.querySelector("#--embedded-chat-export-options-form"));
-
+        // don't reload screen on form submit
         form.onsubmit = (ev) => {
             ev.preventDefault();
         }
-
+        // setup form cancel btn
         (<HTMLButtonElement>mainScreen.querySelector("#--embedded-chat-export-options-form-cancel")).onclick = (ev) => {
             ev.preventDefault();
             this.destroy();
         };
-
+        // setup export btn
         (<HTMLButtonElement>mainScreen.querySelector("#--embedded-chat-export-options-form-export")).onclick = (ev) => {
             ev.preventDefault();
 
@@ -66,16 +72,22 @@ export class Sidebar {
             let format = data.get("format");
             if (format === null) return;
 
-            let threadFilter: (thread: object) => boolean;
+            // setup filtering through the selection
+
+            let conversationFilter: (conversation: Conversation) => boolean;
 
             switch(data.get("selection")) {
                 case "all":
-                    threadFilter = () => true;
+                    conversationFilter = () => true;
                     break;
                 case "date":
-                    threadFilter = (thread) => {
-                        if (thread["messageMap"].length === 0) return false;
-                        let lastMessageDate = new Date(thread["messageMap"][Object.keys(thread["messageMap"])[0]]["originalArrivalTime"]);
+                    conversationFilter = (conversation) => {
+                        if (Object.keys(conversation.messageMap).length === 0) return false;
+                        let messages = Object.keys(conversation.messageMap).map(key => conversation.messageMap[key])
+                            .sort((a: Message, b: Message) =>
+                                a.sequenceId - b.sequenceId);
+
+                        let lastMessageDate = new Date(messages[messages.length - 1].originalArrivalTime);
                         return new Date(data.get("selection-date-lower").toString()) <= lastMessageDate &&
                             new Date(data.get("selection-date-upper").toString()) >= lastMessageDate;
                     };
@@ -88,7 +100,9 @@ export class Sidebar {
                     break;
             }
 
-            let threads = new Map<string, object[]>();
+            // get selected posts
+
+            let threads = new Map<string, Conversation[]>();
             data.getAll("channel").forEach(channel => {
                 threads.set(channel.toString(), []);
             })
@@ -102,17 +116,34 @@ export class Sidebar {
                         const cursor: IDBCursorWithValue = event.target["result"];
                         if (cursor) {
                             if (data.getAll("channel").find(channel => channel == cursor.key[0]) &&
-                                    threadFilter(cursor.value)) {
+                                    conversationFilter(cursor.value)) {
+
                                 threads.get(cursor.key[0]).push(cursor.value);
                             }
                             cursor.continue();
                         } else {
-                            console.log(threads);
+                            let exporter: Format;
+
+                            switch (data.get("format")) {
+                                case "txt":
+                                    exporter = new TXTFormat();
+                                    break;
+                                default:
+                                    return;
+                            }
+
+                            let res = exporter.export(threads);
+                            res.forEach((file, name) => {
+                                this.download(name, file);
+                                console.log(file);
+                            });
                         }
                     }
                 };
             });
         }
+
+        // append all channels into form
 
         window.indexedDB.databases().then(databases => {
             let openRequest = window.indexedDB.open(databases.find(database => database.name.startsWith("Teams:conversation-manager:")).name);
@@ -121,13 +152,13 @@ export class Sidebar {
                 const objectStore = db.transaction("conversations").objectStore("conversations");
                 let request = objectStore.getAll();
                 request.onsuccess = (event) => {
-                    let channelsMap = new Map<string, object>;
-                    request.result.forEach(channel => channelsMap.set(channel["id"], channel));
+                    let channelsMap = new Map<string, Channel>;
+                    request.result.forEach((channel: Channel) => channelsMap.set(channel.id, channel));
 
                     let teamsList = document.getElementById("--embedded-chat-export-options-form-teams");
 
-                    channelsMap.forEach((channel, id) => {
-                        if (channel["threadProperties"]["topics"] !== undefined) {
+                    channelsMap.forEach((channel: Channel, id) => {
+                        if (channel.threadProperties.topics !== undefined) {
                             let generalInput = document.createElement("input");
                             generalInput.classList.add("--embedded-chat-export-options-form-channel-input", "main");
                             generalInput.id = `--embedded-chat-export-options-form-channel-${id.replace("@", "")}`;
@@ -138,24 +169,23 @@ export class Sidebar {
                             let generalLabel = document.createElement("label");
                             generalLabel.classList.add("--embedded-chat-export-options-form-channel-label", "main");
                             generalLabel.htmlFor = generalInput.id;
-                            generalLabel.textContent = channel["threadProperties"]["spaceThreadTopic"];
+                            generalLabel.textContent = channel.threadProperties.spaceThreadTopic;
 
                             teamsList.appendChild(generalInput);
                             teamsList.appendChild(generalLabel);
                             teamsList.appendChild(document.createElement("br"));
-
-                            JSON.parse(channel["threadProperties"]["topics"]).forEach(topic => {
+                            JSON.parse(channel.threadProperties.topics).forEach((topic: Topic) => {
                                 let channelInput = document.createElement("input");
                                 channelInput.classList.add("--embedded-chat-export-options-form-channel-input", "sub");
-                                channelInput.id = `--embedded-chat-export-options-form-channel-${topic["id"].replace("@", "")}`
+                                channelInput.id = `--embedded-chat-export-options-form-channel-${topic.id.replace("@", "")}`
                                 channelInput.name = "channel";
-                                channelInput.value = topic["id"];
+                                channelInput.value = topic.id;
                                 channelInput.type = "checkbox";
 
                                 let channelLabel = document.createElement("label");
                                 channelLabel.classList.add("--embedded-chat-export-options-form-channel-label", "sub");
                                 channelLabel.htmlFor = channelInput.id;
-                                channelLabel.textContent = topic["name"];
+                                channelLabel.textContent = topic.name;
 
                                 teamsList.appendChild(channelInput);
                                 teamsList.appendChild(channelLabel);
@@ -168,6 +198,8 @@ export class Sidebar {
                 }
             };
         });
+
+        // setup form channel select all button
 
         (<HTMLButtonElement>mainScreen.querySelector("#--embedded-chat-export-options-form-teams-select-all-none")).onclick = () => {
             let btn = <HTMLButtonElement>mainScreen.querySelector("#--embedded-chat-export-options-form-teams-select-all-none");
@@ -198,5 +230,12 @@ export class Sidebar {
         document.getElementById("--embedded-chat-export-main").remove();
         (<HTMLDivElement>document.querySelector(".ts-channel-list")).style.display = "initial";
         (<HTMLDivElement>document.querySelector(".ts-left-rail-wrapper")).style.width = "initial";
+    }
+
+    private download(filename, dataUrl) {
+        const link = document.createElement("a");
+        link.href = dataUrl;
+        link.download = filename;
+        link.click();
     }
 }
