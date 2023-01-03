@@ -19,11 +19,11 @@ export class TXTFormat implements Format {
 
                 return `${new Date(messages[0].originalArrivalTime).toString()} - ${messages[0].imDisplayName} wrote ${messages[0].content}\n` +
                     messages.slice(1).map(message =>
-                        `${new Date(message.originalArrivalTime).toString()} - ${message.imDisplayName} replied ${message.content}`).join("\n");
-
+                        `${new Date(message.originalArrivalTime).toString()} - ${message.imDisplayName} replied ${message.content}`).join("\n") +
+                    (messages.length === 1 ? "" : "\n");
             }).join("\n");
 
-            res.set(`${id}.txt`, `data:text/plain;base64,${btoa(text)}`);
+            res.set(`${id}.txt`, `data:text/plain;base64,${btoa(text.replace(/[\u0250-\ue007]/g, ''))}`);
         });
 
         return res;
