@@ -14,16 +14,21 @@ export interface Topic {
     name: string
 }
 
-export interface Conversation {
-    conversationId: string,
-    messageMap: object
+export interface Post {
+    messages: Message[]
 }
 
 export interface Message {
     id: string,
     content: string,
-    imDisplayName: string,
-    messageType: string,
-    originalArrivalTime: number,
+    conversationLink: string,
+    conversationid: string,
+    composetime: string,
+    imdisplayname?: string,
+    messagetype: string,
+    originalarrivaltime: number,
+    properties: {
+        deletetime?: number
+    }
     sequenceId: number
 }

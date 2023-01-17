@@ -1,6 +1,7 @@
-import {Channel, Conversation, Message, Topic} from "./Types";
+import {Channel, Post, Message, Topic} from "./Types";
 import {TXTFormat} from "./formats/TXTFormat";
 import {Format} from "./formats/Format";
+import {Messages} from "./Messages";
 
 export class Sidebar {
 
@@ -65,7 +66,7 @@ export class Sidebar {
             this.destroy();
         };
         // setup export btn
-        (<HTMLButtonElement>mainScreen.querySelector("#--embedded-chat-export-options-form-export")).onclick = (ev) => {
+        (<HTMLButtonElement>mainScreen.querySelector("#--embedded-chat-export-options-form-export")).onclick = async (ev) => {
             ev.preventDefault();
 
             let data = new FormData(<HTMLFormElement>mainScreen.querySelector("#--embedded-chat-export-options-form"));
@@ -74,20 +75,21 @@ export class Sidebar {
 
             // setup filtering through the selection
 
-            let conversationFilter: (conversation: Conversation) => boolean;
+            let postFilter: (post: Post) => boolean;
 
-            switch(data.get("selection")) {
+            switch (data.get("selection")) {
                 case "all":
-                    conversationFilter = () => true;
+                    postFilter = () => true;
                     break;
                 case "date":
-                    conversationFilter = (conversation) => {
-                        if (Object.keys(conversation.messageMap).length === 0) return false;
-                        let messages = Object.keys(conversation.messageMap).map(key => conversation.messageMap[key])
+                    postFilter = (conversation) => {
+                        if (conversation.messages.length === 0) return false;
+                        let messages = conversation.messages
                             .sort((a: Message, b: Message) =>
                                 a.sequenceId - b.sequenceId);
 
-                        let lastMessageDate = new Date(messages[messages.length - 1].originalArrivalTime);
+                        let lastMessageDate = new Date(messages[messages.length - 1].originalarrivaltime);
+
                         return new Date(data.get("selection-date-lower").toString()) <= lastMessageDate &&
                             new Date(data.get("selection-date-upper").toString()) >= lastMessageDate;
                     };
@@ -102,11 +104,40 @@ export class Sidebar {
 
             // get selected posts
 
-            let threads = new Map<string, Conversation[]>();
+            let threads = new Map<string, Post[]>();
             data.getAll("channel").forEach(channel => {
                 threads.set(channel.toString(), []);
-            })
+            });
 
+            let skypeToken = this.getSkypeToken();
+            let chatService = this.getChatService();
+
+            for (const [channel, posts] of threads) {
+                let messages = await Messages.getAllMessages(chatService, skypeToken, channel);
+                messages.forEach(group => {
+                    posts.push({
+                        messages: group
+                    });
+                });
+            }
+
+            let exporter: Format;
+
+            switch (data.get("format")) {
+                case "txt":
+                    exporter = new TXTFormat();
+                    break;
+                default:
+                    return;
+            }
+
+            let res = exporter.export(threads);
+            res.forEach((file, name) => {
+                this.download(name, file);
+                console.log(file);
+            });
+
+            /*
             window.indexedDB.databases().then(databases => {
                 let openRequest = window.indexedDB.open(databases.find(database => database.name.startsWith("Teams:replychain-manager:")).name);
                 openRequest.onsuccess = () => {
@@ -116,7 +147,7 @@ export class Sidebar {
                         const cursor: IDBCursorWithValue = event.target["result"];
                         if (cursor) {
                             if (data.getAll("channel").find(channel => channel == cursor.key[0]) &&
-                                    conversationFilter(cursor.value)) {
+                                    postFilter(cursor.value)) {
 
                                 threads.get(cursor.key[0]).push(cursor.value);
                             }
@@ -141,6 +172,8 @@ export class Sidebar {
                     }
                 };
             });
+
+             */
         }
 
         // append all channels into form
@@ -230,6 +263,20 @@ export class Sidebar {
         document.getElementById("--embedded-chat-export-main").remove();
         (<HTMLDivElement>document.querySelector(".ts-channel-list")).style.display = "initial";
         (<HTMLDivElement>document.querySelector(".ts-left-rail-wrapper")).style.width = "initial";
+    }
+
+    private getSkypeToken() {
+        return document.cookie.split('; ').find((row) => row.startsWith('skypetoken_asm='))?.split('=')[1];
+    }
+
+    private getChatService() {
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (/ts.*.auth.gtm.table/.test(key)) {
+                return JSON.parse(localStorage.getItem(key))["chatService"];
+            }
+        }
+        return null;
     }
 
     private download(filename, dataUrl) {

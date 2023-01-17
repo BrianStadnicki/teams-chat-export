@@ -23,9 +23,11 @@
   ],
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "declarativeNetRequest"
   ],
   "host_permissions": [
-    "https://teams.microsoft.com/"
+    "https://teams.microsoft.com/",
+    "https://*.teams.microsoft.com/"
   ]
 }

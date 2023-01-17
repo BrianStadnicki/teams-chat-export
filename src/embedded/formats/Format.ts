@@ -1,5 +1,5 @@
-import {Conversation} from "../Types";
+import {Post} from "../Types";
 
 export interface Format {
-    export(threads: Map<string, Conversation[]>): Map<string, string>;
+    export(threads: Map<string, Post[]>): Map<string, string>;
 }
