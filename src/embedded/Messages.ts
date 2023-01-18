@@ -3,12 +3,13 @@ import moment = require("moment");
 
 export class Messages {
     static async getAllMessages(chatService: string, skypeToken: string, channel: string): Promise<Message[][]> {
-        return Messages.getThread(chatService, skypeToken, channel, 20, "0")
+        return Messages.getThread(chatService, skypeToken, channel, 200, "0")
             .then(async first => {
                 let messages = first[0];
                 let backwardLink = first[1];
                 while (backwardLink !== undefined) {
-                    let next = await Messages.getThread(chatService, skypeToken, channel, 20, "0", new URL(backwardLink).searchParams.get("syncState"));
+                    await Messages.sleep(500);
+                    let next = await Messages.getThread(chatService, skypeToken, channel, 200, "0", new URL(backwardLink).searchParams.get("syncState"));
                     messages.push(...next[0]);
                     backwardLink = next[1];
                 }
@@ -38,4 +39,9 @@ export class Messages {
     private static groupByKey(list, key) {
         return list.reduce((hash, obj) => ({...hash, [obj[key]]:( hash[obj[key]] || [] ).concat(obj)}), {})
     }
+
+    private static sleep(ms: number) {
+        return new Promise((r) => setTimeout(r, ms));
+    }
+
 }

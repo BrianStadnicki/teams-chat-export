@@ -134,46 +134,7 @@ export class Sidebar {
             let res = exporter.export(threads);
             res.forEach((file, name) => {
                 this.download(name, file);
-                console.log(file);
             });
-
-            /*
-            window.indexedDB.databases().then(databases => {
-                let openRequest = window.indexedDB.open(databases.find(database => database.name.startsWith("Teams:replychain-manager:")).name);
-                openRequest.onsuccess = () => {
-                    let db = openRequest.result;
-                    const objectStore = db.transaction("replychains").objectStore("replychains");
-                    objectStore.openCursor().onsuccess = (event) => {
-                        const cursor: IDBCursorWithValue = event.target["result"];
-                        if (cursor) {
-                            if (data.getAll("channel").find(channel => channel == cursor.key[0]) &&
-                                    postFilter(cursor.value)) {
-
-                                threads.get(cursor.key[0]).push(cursor.value);
-                            }
-                            cursor.continue();
-                        } else {
-                            let exporter: Format;
-
-                            switch (data.get("format")) {
-                                case "txt":
-                                    exporter = new TXTFormat();
-                                    break;
-                                default:
-                                    return;
-                            }
-
-                            let res = exporter.export(threads);
-                            res.forEach((file, name) => {
-                                this.download(name, file);
-                                console.log(file);
-                            });
-                        }
-                    }
-                };
-            });
-
-             */
         }
 
         // append all channels into form
