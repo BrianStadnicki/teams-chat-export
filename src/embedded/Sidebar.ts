@@ -75,30 +75,47 @@ export class Sidebar {
 
             // setup filtering through the selection
 
-            let postFilter: (post: Post) => boolean;
+            let postsFilter: (posts: Post[]) => Post[];
 
             switch (data.get("selection")) {
                 case "all":
-                    postFilter = () => true;
+                    postsFilter = (posts) => posts;
                     break;
                 case "date":
-                    postFilter = (conversation) => {
-                        if (conversation.messages.length === 0) return false;
-                        let messages = conversation.messages
-                            .sort((a: Message, b: Message) =>
-                                a.sequenceId - b.sequenceId);
+                    postsFilter = (posts) => {
+                        return posts.filter(post => {
+                            if (post.messages.length === 0) return false;
+                            let messages = post.messages
+                                .sort((a: Message, b: Message) =>
+                                    a.sequenceId - b.sequenceId);
 
-                        let lastMessageDate = new Date(messages[messages.length - 1].originalarrivaltime);
+                            let lastMessageDate = new Date(messages[messages.length - 1].originalarrivaltime);
 
-                        return new Date(data.get("selection-date-lower").toString()) <= lastMessageDate &&
-                            new Date(data.get("selection-date-upper").toString()) >= lastMessageDate;
-                    };
+                            return new Date(data.get("selection-date-lower").toString()) <= lastMessageDate &&
+                                new Date(data.get("selection-date-upper").toString()) >= lastMessageDate;
+                        })};
                     break;
                 case "first-messages":
-
+                    postsFilter = (posts) => {
+                        return posts.filter(post => {
+                            let messages = post.messages
+                                .sort((a: Message, b: Message) =>
+                                    a.sequenceId - b.sequenceId);
+                            return messages[0].clientmessageid !== undefined;
+                        })
+                            .slice(0, Number.parseInt(data.get("selection-number-first").toString()));
+                    }
                     break;
                 case "last-messages":
-
+                    postsFilter = (posts) => {
+                        return posts.filter(post => {
+                            let messages = post.messages
+                                .sort((a: Message, b: Message) =>
+                                    a.sequenceId - b.sequenceId);
+                            return messages[0].clientmessageid !== undefined;
+                        })
+                            .slice(-Number.parseInt(data.get("selection-number-last").toString()));
+                    }
                     break;
             }
 
@@ -114,11 +131,8 @@ export class Sidebar {
 
             for (const [channel, posts] of threads) {
                 let messages = await Messages.getAllMessages(chatService, skypeToken, channel);
-                messages.forEach(group => {
-                    posts.push({
-                        messages: group
-                    });
-                });
+                let newPosts: Post[] = postsFilter(messages.map(messages => {return {messages: messages}}));
+                posts.push(...newPosts);
             }
 
             let exporter: Format;

@@ -20,6 +20,7 @@ export interface Post {
 
 export interface Message {
     id: string,
+    clientmessageid?: string,
     content: string,
     conversationLink: string,
     conversationid: string,
