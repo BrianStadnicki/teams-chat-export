@@ -3,13 +3,19 @@ import moment = require("moment");
 
 export class Messages {
     static async getAllMessages(chatService: string, skypeToken: string, channel: string): Promise<Message[][]> {
-        return Messages.getThread(chatService, skypeToken, channel, 200, "0")
+        return Messages.getThread(chatService, skypeToken, channel, 200)
             .then(async first => {
                 let messages = first[0];
                 let backwardLink = first[1];
+                let previousEndTime: number = first[2];
                 while (backwardLink !== undefined) {
                     await Messages.sleep(500);
-                    let next = await Messages.getThread(chatService, skypeToken, channel, 200, "0", new URL(backwardLink).searchParams.get("syncState"));
+                    let next = await Messages.getThread(chatService, skypeToken, channel, 200, new URL(backwardLink).searchParams.get("syncState"));
+                    if (previousEndTime === next[2]) {
+                        break;
+                    } else {
+                        previousEndTime = next[2];
+                    }
                     messages.push(...next[0]);
                     backwardLink = next[1];
                 }
@@ -23,8 +29,8 @@ export class Messages {
             });
     }
 
-    static async getThread(chatService: string, skypeToken: string, channel: string, pageSize: number, startTime: string, syncState?: string): Promise<[Message[], string]> {
-        return fetch(`${chatService}/v1/users/ME/conversations/${encodeURIComponent(channel)}/messages?view=msnp24Equivalent|supportsMessageProperties&startTime=${startTime}&pageSize=${pageSize}${
+    static async getThread(chatService: string, skypeToken: string, channel: string, pageSize: number, syncState?: string): Promise<[Message[], string, number]> {
+        return fetch(`${chatService}/v1/users/ME/conversations/${encodeURIComponent(channel)}/messages?pageSize=${pageSize}${
             syncState === undefined ? '' : `&syncState=${syncState}`}`, {
             headers: {
                 authentication: `skypetoken=${skypeToken}`
@@ -32,7 +38,7 @@ export class Messages {
         })
             .then(res => res.json())
             .then(res => {
-                return [res["messages"], res["_metadata"]["backwardLink"]];
+                return [res["messages"], res["_metadata"]["backwardLink"], res["_metadata"]["lastCompleteSegmentEndTime"]];
             });
     }
 
