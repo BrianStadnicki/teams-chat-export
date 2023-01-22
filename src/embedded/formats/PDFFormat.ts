@@ -12,21 +12,23 @@ export class PDFFormat implements Format {
 
         for (const [thread, posts] of threads) {
             let doc = new jsPDF();
-            doc.setFontSize(10);
+            doc.setFontSize(8);
 
             let body = [];
             posts.forEach(post => {
                 post.messages = post.messages.sort((a: Message, b: Message) => a.sequenceId - b.sequenceId);
                 let first = post.messages[0];
-                body.push([{content: first.imdisplayname, styles: {fillColor: [255, 255, 255]}}, {content: moment(first.composetime, moment.HTML5_FMT.DATETIME_LOCAL_MS).format("ddd, MMM Do YYYY, h:mm:ss a"), styles: {fillColor: [255, 255, 255]}}, {content: htmlToContent(first.content), styles: {fillColor: [255, 255, 255]}}]);
+                body.push([{content: first.imdisplayname, styles: {fillColor: [255, 255, 255]}}, {content: moment(first.composetime, moment.HTML5_FMT.DATETIME_LOCAL_MS).format("ddd, Do MMM YYYY, h:mm:ss a"), styles: {fillColor: [255, 255, 255]}}, {content: htmlToContent(first.content), styles: {fillColor: [255, 255, 255]}}]);
                 post.messages.slice(1).forEach(message => {
-                    body.push([{content: message.imdisplayname, styles: {fillColor: [181, 181, 181]}}, {content: moment(message.composetime, moment.HTML5_FMT.DATETIME_LOCAL_MS).format("ddd, MMM Do YYYY, h:mm:ss a"), styles: {fillColor: [181, 181, 181]}}, {content: htmlToContent(message.content), styles: {fillColor: [181, 181, 181]}}]);
+                    body.push([{content: message.imdisplayname, styles: {fillColor: [181, 181, 181]}}, {content: moment(message.composetime, moment.HTML5_FMT.DATETIME_LOCAL_MS).format("ddd, Do MMM YYYY, h:mm:ss a"), styles: {fillColor: [181, 181, 181]}}, {content: htmlToContent(message.content), styles: {fillColor: [181, 181, 181]}}]);
                 });
             });
 
             autoTable(doc, {
+                columnStyles: {1: {cellWidth: 50}},
                 head: [["Sender", "Time", "Content"]],
-                body: body
+                body: body,
+                theme: "grid"
             });
             res.set(thread, doc.output("datauristring"));
         }
