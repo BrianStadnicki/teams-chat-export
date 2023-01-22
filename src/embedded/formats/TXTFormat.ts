@@ -22,7 +22,7 @@ export class TXTFormat implements Format {
                     (messages.length === 1 ? "" : "\n");
             }).join("\n");
 
-            res.set(`${id}.txt`, `data:text/plain;base64,${btoa(text.replace(/[\u0250-\ue007]/g, ''))}`);
+            res.set(id, `data:text/plain;base64,${btoa(text.replace(/[\u0250-\ue007]/g, ''))}`);
         });
 
         return res;

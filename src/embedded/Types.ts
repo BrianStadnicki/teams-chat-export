@@ -5,7 +5,8 @@ export interface Channel {
     teamId: string,
     threadProperties: {
         topics?: JSON<Topic[]>,
-        spaceThreadTopic: string
+        spaceThreadTopic?: string,
+        topic: string
     }
 }
 

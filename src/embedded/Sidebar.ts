@@ -3,6 +3,7 @@ import {TXTFormat} from "./formats/TXTFormat";
 import {Format} from "./formats/Format";
 import {Messages} from "./Messages";
 import {PDFFormat} from "./formats/PDFFormat";
+import {getChannel} from "./Utils";
 
 export class Sidebar {
 
@@ -137,21 +138,28 @@ export class Sidebar {
             }
 
             let exporter: Format;
+            let extension: string;
 
             switch (data.get("format")) {
                 case "txt":
                     exporter = new TXTFormat();
+                    extension = "txt";
                     break;
                 case "pdf":
                     exporter = new PDFFormat();
+                    extension = "pdf";
                     break;
                 default:
                     return;
             }
 
             let res = exporter.export(threads);
-            res.forEach((file, name) => {
-                this.download(name, file);
+            res.forEach((file, id) => {
+                getChannel(id).then(channel => {
+                    getChannel(channel.teamId).then(team => {
+                        this.download(`${team.threadProperties.spaceThreadTopic} - ${channel.threadProperties.topic}.${extension}`, file);
+                    });
+                });
             });
         }
 

@@ -28,7 +28,7 @@ export class PDFFormat implements Format {
                 head: [["Sender", "Time", "Content"]],
                 body: body
             });
-            res.set(`${thread}.pdf`, doc.output("datauristring"));
+            res.set(thread, doc.output("datauristring"));
         }
 
         return res;
