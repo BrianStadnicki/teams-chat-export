@@ -4,6 +4,7 @@ import {Format} from "./formats/Format";
 import {Messages} from "./Messages";
 import {PDFFormat} from "./formats/PDFFormat";
 import {getChannel} from "./Utils";
+import ExtPay from "extpay";
 
 export class Sidebar {
 
@@ -74,6 +75,24 @@ export class Sidebar {
             let data = new FormData(<HTMLFormElement>mainScreen.querySelector("#--embedded-chat-export-options-form"));
             let format = data.get("format");
             if (format === null) return;
+
+            // check if paid
+
+            const extPay = ExtPay("teams-chat-export");
+            let user = await extPay.getUser();
+            console.log(user, new Date().valueOf() - user.trialStartedAt.valueOf());
+            if (user.paid) {
+
+            } else if (user.subscriptionStatus === "past_due") {
+                extPay.openPaymentPage();
+                return;
+            } else if (user.trialStartedAt && (new Date().valueOf() - user.trialStartedAt.valueOf()) > 1000*60*60*24*3) {
+                extPay.openPaymentPage();
+                return;
+            } else if (!user.trialStartedAt) {
+                extPay.openTrialPage("3-days");
+                return;
+            }
 
             // setup filtering through the selection
 

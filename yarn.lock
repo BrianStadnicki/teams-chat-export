@@ -1635,6 +1635,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"extpay@npm:^3.0.7":
+  version: 3.0.7
+  resolution: "extpay@npm:3.0.7"
+  dependencies:
+    webextension-polyfill: ^0.7.0
+  checksum: 48fe3d2624c9f9b55e95775be3bc04fac8a7aa7db1038a8ec5f058006078b4f08b684d23a4d11975bd98babfb2e7b38aea9414e545f975d80fccd92c62b7b8f8
+  languageName: node
+  linkType: hard
+
 "fflate@npm:^0.4.8":
   version: 0.4.8
   resolution: "fflate@npm:0.4.8"
@@ -2904,6 +2913,7 @@ __metadata:
     "@parcel/config-webextension": ^2.8.0
     "@types/chrome": ^0.0.203
     "@types/dom-to-image": ^2.6.4
+    extpay: ^3.0.7
     jspdf: ^2.5.1
     jspdf-autotable: ^3.5.28
     moment: ^2.29.4
@@ -3050,6 +3060,13 @@ __metadata:
   version: 1.2.2
   resolution: "weak-lru-cache@npm:1.2.2"
   checksum: 0fbe16839d193ed82ddb4fe331ca8cfaee2ecbd42596aa02366c708956cf41f7258f2d5411c3bc9aa099c26058dc47afbd2593d449718a18e4ef4d870c5ace18
+  languageName: node
+  linkType: hard
+
+"webextension-polyfill@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "webextension-polyfill@npm:0.7.0"
+  checksum: fb738a5de07feb593875e02f25c3ab4276c8736118929556c8d4bdf965bb0f11c96ea263cd397b9b21259e8faf2dce2eaaa42ce08c922d96de7adb5896ec7d10
   languageName: node
   linkType: hard
 

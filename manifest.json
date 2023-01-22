@@ -21,6 +21,10 @@
       "css": ["/src/embedded/embedded.css"]
     }
   ],
+  "background": {
+    "service_worker": "/src/background/background.ts",
+    "type": "module"
+  },
   "permissions": [
     "storage",
     "tabs",
