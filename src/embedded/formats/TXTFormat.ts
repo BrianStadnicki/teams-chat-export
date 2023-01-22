@@ -1,5 +1,6 @@
 import {Format} from "./Format";
 import {Post, Message} from "../Types";
+import {htmlToContent} from "../Utils";
 
 export class TXTFormat implements Format {
     export(threads: Map<string, Post[]>): Map<string, string> {
@@ -12,9 +13,7 @@ export class TXTFormat implements Format {
                         a.sequenceId - b.sequenceId);
 
                 messages.forEach((message: Message) => {
-                    let div = document.createElement("div");
-                    div.innerHTML = message.content;
-                    message.content = div.textContent.replace(/[\n\r]+|[\s]{2,}/g, ' ').replace(/[^\x00-\x7F]/g, '').trim();
+                    message.content = htmlToContent(message.content);
                 });
 
                 return `${new Date(messages[0].originalarrivaltime).toString()} - ${messages[0].imdisplayname} wrote ${messages[0].content}\n` +

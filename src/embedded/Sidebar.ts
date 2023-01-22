@@ -2,6 +2,7 @@ import {Channel, Post, Message, Topic} from "./Types";
 import {TXTFormat} from "./formats/TXTFormat";
 import {Format} from "./formats/Format";
 import {Messages} from "./Messages";
+import {PDFFormat} from "./formats/PDFFormat";
 
 export class Sidebar {
 
@@ -140,6 +141,9 @@ export class Sidebar {
             switch (data.get("format")) {
                 case "txt":
                     exporter = new TXTFormat();
+                    break;
+                case "pdf":
+                    exporter = new PDFFormat();
                     break;
                 default:
                     return;
