@@ -26,8 +26,7 @@
     "type": "module"
   },
   "permissions": [
-    "storage",
-    "tabs"
+    "storage"
   ],
   "host_permissions": [
     "https://teams.microsoft.com/",
