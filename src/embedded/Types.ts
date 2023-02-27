@@ -26,6 +26,7 @@ export interface Message {
     conversationLink: string,
     conversationid: string,
     composetime: string,
+    from: string,
     imdisplayname?: string,
     messagetype: string,
     originalarrivaltime: number,

@@ -3,7 +3,7 @@ import {Post, Message} from "../Types";
 import {htmlToContent} from "../Utils";
 
 export class TXTFormat implements Format {
-    export(threads: Map<string, Post[]>): Map<string, string> {
+    async export(threads: Map<string, Post[]>): Promise<Map<string, string>> {
         let res = new Map<string, string>();
 
         threads.forEach((conversations, id) => {

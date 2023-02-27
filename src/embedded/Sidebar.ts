@@ -172,7 +172,7 @@ export class Sidebar {
                     return;
             }
 
-            let res = exporter.export(threads);
+            let res = await exporter.export(threads);
             res.forEach((file, id) => {
                 getChannel(id).then(channel => {
                     getChannel(channel.teamId).then(team => {
