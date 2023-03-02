@@ -2,7 +2,6 @@ import {Format} from "./Format";
 import {Message, Post} from "../Types";
 import PDFDocument, {text} from "pdfkit";
 import * as blobStream from "blob-stream";
-import moment from "moment";
 
 export class PDFFormat implements Format {
     async export(threads: Map<string, Post[]>): Promise<Map<string, string>> {
@@ -33,7 +32,7 @@ export class PDFFormat implements Format {
 
                 doc
                     .fontSize(8)
-                    .text(moment(first.composetime, moment.HTML5_FMT.DATETIME_LOCAL_MS).format("dddd, Do MMMM YYYY, h:mm:ss a"), doc.x + 25, doc.y - 20, {align: "right", width: 400})
+                    .text(Date.parse(first.composetime).toString(), doc.x + 25, doc.y - 20, {align: "right", width: 400})
                     .fontSize(8)
                     .text(first.imdisplayname);
 

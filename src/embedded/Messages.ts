@@ -1,5 +1,4 @@
 import {Message} from "./Types";
-import moment = require("moment");
 
 export class Messages {
     static async getAllMessages(chatService: string, skypeToken: string, channel: string): Promise<Message[][]> {
@@ -23,9 +22,9 @@ export class Messages {
                 return (<Message[][]>Object.values(Messages.groupByKey((messages)
                         .filter(message => message.properties["deletetime"] === undefined)
                         .filter(message => message.messagetype.startsWith("RichText/") || message.messagetype === "Text")
-                        .sort((a, b) => moment(b.composetime, moment.HTML5_FMT.DATETIME_LOCAL_MS).diff(moment(a.composetime, moment.HTML5_FMT.DATETIME_LOCAL_MS)))
+                        .sort((a, b) => Date.parse(b.composetime) - Date.parse(a.composetime))
                     , 'conversationLink')))
-                    .sort((a, b) => moment(a[a.length - 1].composetime, moment.HTML5_FMT.DATETIME_LOCAL_MS).diff(moment(b[b.length - 1].composetime, moment.HTML5_FMT.DATETIME_LOCAL_MS)));
+                    .sort((a, b) => Date.parse(a[a.length - 1].composetime) - Date.parse(b[b.length - 1].composetime));
             });
     }
 

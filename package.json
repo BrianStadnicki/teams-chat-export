@@ -24,7 +24,6 @@
   "dependencies": {
     "blob-stream": "^0.1.3",
     "extpay": "^3.0.7",
-    "moment": "^2.29.4",
     "pdfkit": "^0.13.0"
   },
   "packageManager": "yarn@3.3.1"
