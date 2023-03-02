@@ -39,16 +39,19 @@ export class PDFFormat implements Format {
 
                 // text content
 
-                let contentElement = document.createElement("div");
-                contentElement.innerHTML = first.content;
-                doc .fontSize(8)
-                    .moveDown()
-                    .text(contentElement.textContent, {width: 400});
+                await this.renderContent(doc, first.content);
+
                 doc.x -= 25;
 
                 doc.moveDown(1);
 
-                doc.rect(startingX, startingY, 440, doc.y - startingY).stroke();
+                doc
+                    .lineWidth(1)
+                    .moveTo(doc.x, doc.y)
+                    .lineTo(doc.x + 440, doc.y)
+                    .stroke();
+
+                // doc.rect(startingX, startingY, 440, doc.y - startingY).stroke();
 
                 doc.moveDown(1);
 
@@ -61,6 +64,96 @@ export class PDFFormat implements Format {
         }
 
         return res;
+    }
+
+    async renderContent(doc: PDFKit.PDFDocument, content: string) {
+        console.log(content);
+
+        let contentDOM = new DOMParser().parseFromString(content, "text/html");
+
+        let handleElement = async (element: ChildNode) => {
+            switch (element.nodeName) {
+                case "A":
+                    doc
+                        .fontSize(8)
+                        .text(element.textContent, {
+                            width: 400,
+                            continued: true,
+                            link: (<HTMLAnchorElement>element).href
+                        });
+                    return;
+                case "IMG":
+                    let image: any;
+                    let imageURL = (<HTMLImageElement>element).src;
+
+                    if (imageURL === "") return;
+                    if (imageURL.includes(".gif")) return;
+
+                    if (imageURL.includes(".asm.skype.com/v1/objects/")) {
+                        image = await fetch((<HTMLImageElement>element).src,
+                            {
+                                "referrer": "https://teams.microsoft.com/",
+                                "referrerPolicy": "strict-origin-when-cross-origin",
+                                "body": null,
+                                "method": "GET",
+                                "mode": "cors",
+                                "credentials": "include"
+                            }).then(image => image.blob()).then(image => image.arrayBuffer());
+                    } else {
+                        image = await fetch(imageURL,
+                            {
+                                "referrer": "https://teams.microsoft.com/",
+                                "referrerPolicy": "strict-origin-when-cross-origin",
+                                "body": null,
+                                "method": "GET",
+                                "mode": "cors",
+                                "credentials": "same-origin"
+                            }).then(image => image.blob()).then(image => image.arrayBuffer());
+                    }
+
+                    console.log(image);
+
+                    if ((<HTMLImageElement>element).getAttribute("itemtype") === "http://schema.skype.com/Emoji") {
+                        return;
+                    }
+
+                    doc.moveDown();
+
+                    if ((<HTMLImageElement>element).style.width !== "") {
+                        let width = parseInt((<HTMLImageElement>element).style.width.replace("px", ""));
+                        let height = parseInt((<HTMLImageElement>element).style.height.replace("px", ""));
+                        if (width > 400) {
+                            doc.image(image, {fit: [400, 600]});
+                        } else {
+                            doc.image(image, {width: width, height: height});
+                        }
+                    } else {
+                        doc.image(image, {fit: [400, 600]});
+                    }
+
+            }
+
+            if (element.hasChildNodes()) {
+                for (let i = 0; i < element.childNodes.length; i++) {
+                    await handleElement(element.childNodes.item(i));
+                }
+            } else {
+                switch (element.nodeName) {
+                    case "#text":
+                        doc
+                            .fontSize(8)
+                            .text(element.textContent, {width: 400, continued: true});
+                        break;
+                    case "DIV":
+                        doc.moveDown();
+                        break;
+                }
+            }
+        };
+
+        for (let i = 0; i < contentDOM.childNodes.length; i++) {
+            await handleElement(contentDOM.childNodes.item(i));
+        }
     }
 
 }
