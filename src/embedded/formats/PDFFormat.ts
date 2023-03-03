@@ -1,6 +1,6 @@
 import {Format} from "./Format";
 import {Message, Post} from "../Types";
-import PDFDocument, {text} from "pdfkit";
+import PDFDocument from "pdfkit";
 import * as blobStream from "blob-stream";
 
 export class PDFFormat implements Format {
@@ -16,9 +16,6 @@ export class PDFFormat implements Format {
                 let first = post.messages[0];
 
                 // image
-
-                let startingX = doc.x;
-                let startingY = doc.y;
 
                 doc.moveDown(1);
 
@@ -118,16 +115,17 @@ export class PDFFormat implements Format {
 
                     doc.moveDown();
 
-                    if ((<HTMLImageElement>element).style.width !== "") {
-                        let width = parseInt((<HTMLImageElement>element).style.width.replace("px", ""));
-                        let height = parseInt((<HTMLImageElement>element).style.height.replace("px", ""));
-                        if (width > 400) {
-                            doc.image(image, {fit: [400, 600]});
-                        } else {
-                            doc.image(image, {width: width, height: height});
-                        }
-                    } else {
+                    let width = parseInt((<HTMLImageElement>element).style.width.replace("px", ""));
+                    let height = parseInt((<HTMLImageElement>element).style.height.replace("px", ""));
+
+                    if (height > 842 - 72 - doc.y) {
+                        doc.addPage();
+                    }
+
+                    if (width > 400) {
                         doc.image(image, {fit: [400, 600]});
+                    } else {
+                        doc.image(image, {width: width, height: height});
                     }
 
             }
