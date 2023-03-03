@@ -44,6 +44,8 @@ export class Sidebar {
                         <br>
                         <input type="radio" class="--embedded-chat-export-options-form-format" name="format" id="--embedded-chat-export-options-form-format-pdf" value="pdf">
                         <label for="--embedded-chat-export-options-form-format-pdf">PDF</label>
+                        
+                        <div id="--embedded-chat-export-options-form-loader"></div>
                     </div>
                     
                     <div id="--embedded-chat-export-options-form-teams">
@@ -81,7 +83,7 @@ export class Sidebar {
 
             const extPay = ExtPay("teams-chat-export");
             let user = await extPay.getUser();
-            console.log(user, new Date().valueOf() - user.trialStartedAt.valueOf());
+
             if (user.paid) {
 
             } else if (user.subscriptionStatus === "past_due") {
@@ -141,6 +143,12 @@ export class Sidebar {
                     break;
             }
 
+            // show loading screen
+            mainScreen.style.userSelect = "none";
+            document.getElementById("--embedded-chat-export-options-form-loader").style.display = "block";
+
+
+
             // get selected posts
 
             let threads = new Map<string, Post[]>();
@@ -182,7 +190,11 @@ export class Sidebar {
                 zip.file(`${team.threadProperties.spaceThreadTopic} - ${channel.threadProperties.topic}.${extension}`, file);
             }
             let zipFile = await zip.generateAsync({type: "blob"});
+
             this.download("teams-chats-export.zip", window.URL.createObjectURL(zipFile));
+
+            mainScreen.style.userSelect = "initial";
+            document.getElementById("--embedded-chat-export-options-form-loader").style.display = "none";
         }
 
         // append all channels into form
