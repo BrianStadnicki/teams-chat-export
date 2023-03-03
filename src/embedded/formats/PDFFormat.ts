@@ -25,13 +25,13 @@ export class PDFFormat implements Format {
 
                 doc.image(image, {width: 20, height: 20});
 
-                // date/time
+                // sender and date
 
                 doc
                     .fontSize(8)
                     .text(new Date(Date.parse(first.composetime)).toLocaleString(), doc.x + 25, doc.y - 20, {align: "right", width: 400})
-                    .fontSize(8)
-                    .text(first.imdisplayname);
+                    .text(first.imdisplayname)
+                    .moveDown();
 
                 // text content
 
@@ -41,19 +41,44 @@ export class PDFFormat implements Format {
 
                 doc.moveDown(1);
 
+                doc.x += 20;
+
+                for (const message of post.messages.slice(1)) {
+                    doc.moveDown();
+
+                    // image
+
+                    image = await fetch(`https://teams.microsoft.com/api/mt/emea/beta/users/${decodeURIComponent(message.from.substring(message.from.indexOf("/contacts/") + "/contacts/".length))}/profilepicturev2?displayname=${encodeURIComponent(message.imdisplayname)}&size=HR64x64}`)
+                        .then(res => res.blob())
+                        .then(blob => blob.arrayBuffer());
+
+                    doc.image(image, {width: 20, height: 20});
+
+                    // sender and date
+
+                    doc
+                        .fontSize(8)
+                        .text(new Date(Date.parse(message.composetime)).toLocaleString(), doc.x + 25, doc.y - 20, {align: "right", width: 400})
+                        .text(message.imdisplayname, doc.x + 25)
+                        .moveDown();
+
+                    doc.x -= 25;
+
+                    // content
+
+                    await this.renderContent(doc, message.content);
+                }
+
+                doc.x -= 20;
+
                 doc
+                    .moveDown()
                     .lineWidth(1)
                     .moveTo(doc.x, doc.y)
                     .lineTo(doc.x + 440, doc.y)
                     .stroke();
 
-                // doc.rect(startingX, startingY, 440, doc.y - startingY).stroke();
-
-                doc.moveDown(1);
-
-                post.messages.slice(1).forEach(message => {
-
-                });
+                doc.moveDown();
             }
             doc.end();
             res.set(thread, stream.toBlobURL('application/pdf'));
