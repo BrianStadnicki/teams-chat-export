@@ -32,7 +32,7 @@ export class PDFFormat implements Format {
 
                 doc
                     .fontSize(8)
-                    .text(Date.parse(first.composetime).toString(), doc.x + 25, doc.y - 20, {align: "right", width: 400})
+                    .text(new Date(Date.parse(first.composetime)).toLocaleString(), doc.x + 25, doc.y - 20, {align: "right", width: 400})
                     .fontSize(8)
                     .text(first.imdisplayname);
 
