@@ -4,8 +4,8 @@ import PDFDocument from "pdfkit";
 import * as blobStream from "blob-stream";
 
 export class PDFFormat implements Format {
-    async export(threads: Map<string, Post[]>): Promise<Map<string, string>> {
-        let res = new Map<string, string>();
+    async export(threads: Map<string, Post[]>): Promise<Map<string, Blob>> {
+        let res = new Map<string, Blob>();
 
         for (const [thread, posts] of threads) {
             let doc = new PDFDocument();
@@ -81,7 +81,7 @@ export class PDFFormat implements Format {
                 doc.moveDown();
             }
             doc.end();
-            res.set(thread, stream.toBlobURL('application/pdf'));
+            res.set(thread, stream.toBlob('application/pdf'));
         }
 
         return res;

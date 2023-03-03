@@ -5,6 +5,7 @@ import {Messages} from "./Messages";
 import {PDFFormat} from "./formats/PDFFormat";
 import {getChannel} from "./Utils";
 import ExtPay from "extpay";
+import JSZip from "jszip";
 
 export class Sidebar {
 
@@ -173,13 +174,15 @@ export class Sidebar {
             }
 
             let res = await exporter.export(threads);
-            res.forEach((file, id) => {
-                getChannel(id).then(channel => {
-                    getChannel(channel.teamId).then(team => {
-                        this.download(`${team.threadProperties.spaceThreadTopic} - ${channel.threadProperties.topic}.${extension}`, file);
-                    });
-                });
-            });
+            let zip = new JSZip();
+            for (let id of res.keys()) {
+                let file = res.get(id);
+                let channel = await getChannel(id);
+                let team = await getChannel(channel.teamId);
+                zip.file(`${team.threadProperties.spaceThreadTopic} - ${channel.threadProperties.topic}.${extension}`, file);
+            }
+            let zipFile = await zip.generateAsync({type: "blob"});
+            this.download("teams-chats-export.zip", window.URL.createObjectURL(zipFile));
         }
 
         // append all channels into form
