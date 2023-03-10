@@ -132,16 +132,19 @@ export class PDFFormat implements Format {
                             }).then(image => image.blob()).then(image => image.arrayBuffer());
                     }
 
-                    console.log(image);
-
                     if ((<HTMLImageElement>element).getAttribute("itemtype") === "http://schema.skype.com/Emoji") {
                         return;
                     }
 
                     doc.moveDown();
 
-                    let width = parseInt((<HTMLImageElement>element).style.width.replace("px", ""));
-                    let height = parseInt((<HTMLImageElement>element).style.height.replace("px", ""));
+                    let width = parseInt((<HTMLImageElement>element).style.width.replace("px", "")) * (72 / 96);
+                    let height = parseInt((<HTMLImageElement>element).style.height.replace("px", "")) * (72 / 96);
+
+                    if (width === undefined || height == undefined) {
+                        width = (<HTMLImageElement>element).width * (72 / 96);
+                        height = (<HTMLImageElement>element).height * (72 / 96);
+                    }
 
                     if (height > 842 - 72 - doc.y) {
                         doc.addPage();
