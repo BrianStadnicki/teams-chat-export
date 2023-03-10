@@ -1,7 +1,7 @@
 {
-  "name": "Teams chat export",
-  "description": "Exports Microsoft Teams chats",
-  "version": "1.0",
+  "name": "Teams chat downloader",
+  "description": "Downloads Microsoft Teams chats",
+  "version": "1.0.1",
   "manifest_version": 3,
   "icons": {
     "48": "/assets/icons/48.png",
