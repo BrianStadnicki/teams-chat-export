@@ -46,6 +46,7 @@ export class Sidebar {
                         <label for="--embedded-chat-export-options-form-format-pdf">PDF</label>
                         
                         <div id="--embedded-chat-export-options-form-loader"></div>
+                        <h3>Any issues? Email me and I'll respond within 2 days at <a href="mailto:brian.canopy.tracker@gmail.com">brian.canopy.tracker@gmail.com</a></h3>
                     </div>
                     
                     <div id="--embedded-chat-export-options-form-teams">
