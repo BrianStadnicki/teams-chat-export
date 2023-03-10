@@ -1,3 +1,28 @@
 body {
+    background-color: lightblue;
     color: blue;
+    width: 200px;
+}
+
+#heading {
+    display: flex;
+}
+
+#heading > img {
+    float: left;
+}
+
+#heading > h1 {
+    float: right;
+    margin-top: 0;
+}
+
+#manage-subscription {
+    margin: 10px;
+    padding: 5px;
+}
+
+#export-btn {
+    margin: 10px;
+    padding: 5px;
 }
