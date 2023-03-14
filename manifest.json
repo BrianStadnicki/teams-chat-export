@@ -1,7 +1,7 @@
 {
   "name": "Teams chat downloader",
   "description": "Downloads Microsoft Teams chats",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "manifest_version": 3,
   "icons": {
     "48": "/assets/icons/48.png",
@@ -20,13 +20,6 @@
       "js": ["/src/embedded/embedded.ts"],
       "css": ["/src/embedded/embedded.css"]
     }
-  ],
-  "background": {
-    "service_worker": "/src/background/background.ts",
-    "type": "module"
-  },
-  "permissions": [
-    "storage"
   ],
   "host_permissions": [
     "https://teams.microsoft.com/",

@@ -4,7 +4,6 @@ import {Format} from "./formats/Format";
 import {Messages} from "./Messages";
 import {PDFFormat} from "./formats/PDFFormat";
 import {getChannel} from "./Utils";
-import ExtPay from "extpay";
 import JSZip from "jszip";
 
 export class Sidebar {
@@ -46,7 +45,7 @@ export class Sidebar {
                         <label for="--embedded-chat-export-options-form-format-pdf">PDF</label>
                         
                         <div id="--embedded-chat-export-options-form-loader"></div>
-                        <h3>Any issues? Email me and I'll respond within 2 days at <a href="mailto:brian.canopy.tracker@gmail.com">brian.canopy.tracker@gmail.com</a></h3>
+                        <h3>Any issues? Email me at <a href="mailto:brian.canopy.tracker@gmail.com">brian.canopy.tracker@gmail.com</a></h3>
                     </div>
                     
                     <div id="--embedded-chat-export-options-form-teams">
@@ -79,24 +78,6 @@ export class Sidebar {
             let data = new FormData(<HTMLFormElement>mainScreen.querySelector("#--embedded-chat-export-options-form"));
             let format = data.get("format");
             if (format === null) return;
-
-            // check if paid
-
-            const extPay = ExtPay("teams-chat-export");
-            let user = await extPay.getUser();
-
-            if (user.paid) {
-
-            } else if (user.subscriptionStatus === "past_due") {
-                extPay.openPaymentPage();
-                return;
-            } else if (user.trialStartedAt && (new Date().valueOf() - user.trialStartedAt.valueOf()) > 1000*60*60*24*3) {
-                extPay.openPaymentPage();
-                return;
-            } else if (!user.trialStartedAt) {
-                extPay.openTrialPage("3-days");
-                return;
-            }
 
             // setup filtering through the selection
 
